@@ -1,0 +1,91 @@
+USER_SRC := `whoami`
+USER_DEST := "str"
+
+alias b := build
+alias ck := compile-kernel
+alias rk := rsync-kernel
+alias tk := test-kernel
+alias cb := compile-barebox
+alias rb := rsync-barebox
+alias tb := test-barebox
+
+cmd := 'bash -i'
+
+build:
+    podman build -t build-env-v7a build-env
+
+ps:
+    podman ps --all --storage
+
+con:
+    labgrid-client con
+
+lock:
+    #!/usr/bin/env bash
+    if [[ -n $LG_PLACE ]]; then
+        labgrid-client who | grep $LG_PLACE
+        if [ $? != 0 ]; then
+            labgrid-client lock
+        fi
+    fi
+
+unlock:
+    labgrid-client unlock
+
+pw +dir="on":
+    labgrid-client pw {{dir}}
+
+create-builddir:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
+    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
+    echo $BUILDDIR
+    if [ ! -d build ]; then
+        echo "Creating $BUILDDIR link"
+        cd $PWD && ln -sf $BUILDDIR build
+    fi    
+
+connect proj *command=cmd: build create-builddir
+    cd {{invocation_directory()}} && \
+    podman run --rm -it --userns=keep-id \
+    -e ARCH=$ARCH \
+    -e CROSS_COMPILE=$CROSS_COMPILE \
+    --workdir /{{proj}} \
+    --volume "$(pwd)"/build:/build \
+    --volume "$(pwd)":/{{proj}} \
+    build-env-v7a \
+    {{command}}
+
+connect-kernel *command=cmd:
+    cd {{invocation_directory()}} && \
+    just connect kernel {{command}}
+
+connect-barebox *command=cmd:
+    cd {{invocation_directory()}} && \
+    just connect barebox {{command}}
+
+compile-kernel *parameters:
+    cd {{invocation_directory()}} && \
+    just connect-kernel make O=/build -j$(nproc) {{parameters}}
+
+compile-barebox *parameters:
+    cd {{invocation_directory()}} && \
+    just connect-barebox make O=/build -j$(nproc) {{parameters}}
+
+rsync-kernel: compile-kernel
+    cd {{invocation_directory()}} && \
+    rsync -avz build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
+    rsync -avz build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+
+rsync-barebox: compile-barebox
+    cd {{invocation_directory()}} && \
+    rsync -avz build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+
+test: lock pw con && (pw "off") unlock
+
+test-kernel: rsync-kernel
+    just test
+
+test-barebox: rsync-barebox
+    just test
