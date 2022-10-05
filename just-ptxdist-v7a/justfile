@@ -1,0 +1,30 @@
+USER_SRC := `whoami`
+USER_DEST := "str"
+IMAGE := "ptxdist-build-env-arm-multi:latest"
+
+alias b := build
+
+cmd := 'bash -i'
+
+build:
+    podman build -t {{IMAGE}} ~/work/build-envs/ptxdist-build-env
+
+ps:
+    podman ps --all --storage
+
+connect *command=cmd: build
+    cd {{invocation_directory()}} && \
+    podman run --rm -it --userns=keep-id \
+    --workdir /bsp \
+    --volume "$(pwd)":/bsp \
+    --volume /opt/ptxdist/src:/bsp/src \
+    {{IMAGE}} \
+    {{command}}
+
+ptxdist *parameters:
+    cd {{invocation_directory()}} && \
+    just connect ptxdist {{parameters}}
+
+at1130 *parameters:
+    cd {{invocation_directory()}} && \
+    just ptxdist --platformconfig=configs/platform-at1130/platformconfig {{parameters}} 
