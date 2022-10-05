@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-FROM build-env-v7a:latest
+FROM build-env-arm-multi:latest
 
 ARG PTXDIST_VERSION=2022.09.0
 
@@ -12,18 +12,25 @@ RUN apt-get clean && \
 	g++ \
 	autoconf \
 	automake \
+        cpio \
+        dialog \
+        groff-base \
 	make \
 	python3 \
 	python3-dev \
+	python3-jinja2 \
+	python3-setuptools \
 	flex \
 	bison \
 	gawk \
 	gettext \
 	texinfo \
+	rsync \
 	git \
 	wget \
 	pkg-config \
-	ncurses-dev
+	ncurses-dev \
+	tclsh
 
 RUN  apt-get clean
 RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION.tar.bz2 && \
@@ -33,6 +40,10 @@ RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION
      make && \
      make install && \
      cd .. && \
-     rm -rf ptxdist-$PTXDIST_VERSION
+     rm -rf ptxdist-$PTXDIST_VERSION && \
+     if [ ! -d /.ptxdist ]; then mkdir /.ptxdist; fi && \
+     chmod 777 /.ptxdist
+
+ENV PATH="${PATH}:/opt/ptxdist/bin"
 
 CMD /bin/bash
