@@ -15,6 +15,7 @@ RUN apt-get clean && \
         bison \
         build-essential \
         chrpath \
+        cpio \
         flex \
         git-core \
         libncurses5-dev \
