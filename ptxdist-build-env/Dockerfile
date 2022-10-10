@@ -13,8 +13,14 @@ RUN apt-get clean && \
 	autoconf \
 	automake \
         cpio \
+        cmake \
         dialog \
         groff-base \
+        libdbus-1-dev \
+        libffi-dev \
+        libglib2.0-dev \
+        libpcre++-dev \
+        libusb-dev \
 	make \
 	python3 \
 	python3-dev \
