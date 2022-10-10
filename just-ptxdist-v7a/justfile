@@ -1,13 +1,24 @@
-USER_SRC := `whoami`
-USER_DEST := "str"
-IMAGE := "ptxdist-build-env-arm-multi:latest"
+PTXDIST_VERSION := `grep CONFIGFILE_VERSION configs/ptxconfig | cut -d = -f2 | sed 's/"//g'`
+IMAGE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi:latest"
+PTXDIST_PLATFORM := "configs" + "/" + env_var('PLATFORM') + "/" + "platformconfig"
 
 alias b := build
 
 cmd := 'bash -i'
 
+platform:
+    #!/usr/bin/env bash
+    files=$(shopt -s nullglob dotglob; echo configs/platform-*)
+    if (( ${#files} )); then
+      PLATFORM=$(dialog --clear \
+                      --stdout \
+                      --title "Select Platform" \
+                      --fselect configs/ 20 70)
+    fi
+    echo $PLATFORM
+ 
 build:
-    podman build -t {{IMAGE}} ~/work/build-envs/ptxdist-build-env
+    podman build -t {{IMAGE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} ~/work/build-envs/ptxdist-build-env
 
 ps:
     podman ps --all --storage
@@ -24,6 +35,10 @@ connect *command=cmd: build
 ptxdist *parameters:
     cd {{invocation_directory()}} && \
     just connect ptxdist {{parameters}}
+
+ptxdist-platform:
+    cd {{invocation_directory()}} && \
+    just ptxdist platform {{PTXDIST_PLATFORM}}
 
 at1130 *parameters:
     cd {{invocation_directory()}} && \
