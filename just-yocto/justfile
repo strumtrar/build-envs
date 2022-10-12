@@ -1,0 +1,30 @@
+IMAGE := "yocto-build-env"
+alias b := build
+alias cv := compile-vexriscv
+alias cr := compile-rocket
+
+cmd := 'bash -i'
+
+build:
+    podman build -t {{IMAGE}} yocto-build-env
+
+ps:
+    podman ps --all --storage
+
+@_connect *command=cmd: build
+    cd {{invocation_directory()}} && \
+    podman run -it --userns=keep-id \
+    --workdir /bsp \
+    --volume "$(pwd)":/bsp \
+    --volume ~/work/yocto/dl-dir:/bsp/build/downloads \
+    --volume ~/work/yocto/sstate-cache:/bsp/build/sstate-cache \
+    {{IMAGE}} \
+    {{command}}
+
+compile-vexriscv: 
+    cd {{invocation_directory()}} && \
+    just _connect /bsp/build-vexriscv.sh
+
+compile-rocket:
+    cd {{invocation_directory()}} && \
+    just _connect /bsp/build-rocket.sh
