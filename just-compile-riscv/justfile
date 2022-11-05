@@ -1,0 +1,84 @@
+IMAGE := "build-env-riscv:latest"
+USER_SRC := `whoami`
+USER_DEST := "str"
+
+alias b := build
+alias c := compile
+alias r := rsync
+alias t := test
+
+PROJ := `basename $(pwd)`
+
+cmd := 'bash -i'
+
+default: compile
+
+@build:
+    podman build -t {{IMAGE}} ~/work/build-envs/riscv
+
+ps:
+    podman ps --all --storage
+
+_con:
+    labgrid-client con
+
+_lock:
+    #!/usr/bin/env bash
+    if [[ -n $LG_PLACE ]]; then
+        labgrid-client who | grep $LG_PLACE
+        if [ $? != 0 ]; then
+            labgrid-client lock
+        fi
+    fi
+
+_unlock:
+    labgrid-client unlock
+
+_pw +dir="on":
+    labgrid-client pw {{dir}}
+
+_create-builddir:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
+    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
+    cd $PWD
+    if [ ! -L build ]; then
+        echo "Creating $BUILDDIR"
+        mkdir -p $BUILDDIR
+        echo "Creating $BUILDDIR link"
+        ln -sf $BUILDDIR build
+    fi    
+
+@_connect *command=cmd: build _create-builddir
+    cd {{invocation_directory()}} && \
+    podman run --rm -it --userns=keep-id \
+    -e ARCH=$ARCH \
+    -e CROSS_COMPILE=$CROSS_COMPILE \
+    --workdir /{{ PROJ }} \
+    --volume "$(pwd)"/build:/build \
+    --volume "$(pwd)":/{{ PROJ }} \
+    {{IMAGE}} \
+    {{command}}
+
+@connect *command=cmd:
+    cd {{invocation_directory()}} && \
+    just _connect {{command}}
+
+@compile *parameters:
+    cd {{invocation_directory()}} && \
+    just connect make O=/build -j$(nproc) {{parameters}}
+
+rsync: compile
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    if [[ $PWD =~ .*kernel*. ]]; then
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
+    	rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+    fi
+
+test: rsync _lock _pw _con && (_pw "off") _unlock
+
+lg: _lock _pw _con && (_pw "off") _unlock
