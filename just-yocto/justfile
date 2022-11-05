@@ -1,25 +1,49 @@
 IMAGE := "yocto-build-env"
+MACHINE := `echo $HOSTNAME`
 alias b := build
 alias cv := compile-vexriscv
 alias cr := compile-rocket
 
 cmd := 'bash -i'
 
-build:
-    podman build -t {{IMAGE}} yocto-build-env
+@build:
+    podman build -t {{IMAGE}} ~/work/build-envs/yocto-build-env
 
 ps:
     podman ps --all --storage
 
-@_connect *command=cmd: build
+_connect machine *command=cmd:
     cd {{invocation_directory()}} && \
     podman run -it --userns=keep-id \
+    -e MACHINE={{machine}} \
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
     --volume ~/work/yocto/dl-dir:/bsp/build/downloads \
     --volume ~/work/yocto/sstate-cache:/bsp/build/sstate-cache \
     {{IMAGE}} \
     {{command}}
+
+_init_build_script:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    BUILD_SCRIPT="build-{{MACHINE}}.sh"
+    cd $PWD
+    if [ ! -f $BUILD_SCRIPT ]; then
+        echo "#!/bin/bash" > $BUILD_SCRIPT
+        echo ". ./oe-init-build-env" >> $BUILD_SCRIPT
+        echo "bitbake \$@" >> $BUILD_SCRIPT
+        chmod +x $BUILD_SCRIPT
+        if [ ! -d build ]; then
+            mkdir build
+        fi
+        echo "BB_FETCH_PREMIRRORONLY = \"0\"" >> build/conf/auto.conf
+        echo "BB_NO_NETWORK = \"1\"" >> build/conf/auto.conf
+        echo "BB_ALLOWED_NETWORKS = \"\"" >> build/conf/auto.conf
+    fi
+
+compile-bsp target: _init_build_script
+    cd {{invocation_directory()}} && \
+    just _connect {{MACHINE}} /bsp/build-{{MACHINE}}.sh {{target}}
 
 compile-vexriscv: 
     cd {{invocation_directory()}} && \
