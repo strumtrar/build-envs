@@ -84,3 +84,5 @@ rsync: compile
     fi
 
 test: rsync _lock _pw _con && (_pw "off") _unlock
+
+lg: _lock _pw _con && (_pw "off") _unlock
