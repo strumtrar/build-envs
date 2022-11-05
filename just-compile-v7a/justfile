@@ -65,6 +65,10 @@ _create-builddir:
     cd {{invocation_directory()}} && \
     just _connect {{command}}
 
+@objdump *parameters:
+    cd {{invocation_directory()}} && \
+    just connect ${CROSS_COMPILE}objdump -D {{parameters}}
+
 @compile *parameters:
     cd {{invocation_directory()}} && \
     just connect make O=/build -j$(nproc) {{parameters}}
