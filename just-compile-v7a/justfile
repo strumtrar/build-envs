@@ -14,7 +14,7 @@ cmd := 'bash -i'
 default: compile
 
 @build:
-    podman build -t {{IMAGE}} ~/work/build-envs/arm-v7a
+    podman build -q -t {{IMAGE}} ~/work/build-envs/arm-v7a
 
 ps:
     podman ps --all --storage
