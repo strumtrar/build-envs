@@ -1,6 +1,7 @@
 PTXDIST_VERSION := `grep CONFIGFILE_VERSION configs/ptxconfig | cut -d = -f2 | sed 's/"//g'`
-IMAGE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi:latest"
-PTXDIST_PLATFORM := "configs" + "/" + env_var('PLATFORM') + "/" + "platformconfig"
+PTXDIST_PLATFORM := "configs" + "/platform-" + env_var('PLATFORM') + "/" + "platformconfig"
+TOOLCHAIN_VERSION := `grep CROSSCHAIN_VENDOR configs/platform-$PLATFORM/platformconfig | cut -d = -f2 | sed 's/"//g'`
+IMAGE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi:" + TOOLCHAIN_VERSION
 
 alias b := build
 
@@ -16,14 +17,14 @@ platform:
                       --fselect configs/ 20 70)
     fi
     echo $PLATFORM
- 
-build:
-    podman build -t {{IMAGE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} ~/work/build-envs/ptxdist-build-env
+
+@build:
+    podman build -t {{IMAGE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} ~/work/build-envs/ptxdist-build-env
 
 ps:
     podman ps --all --storage
 
-connect *command=cmd: build
+@connect *command=cmd: build
     cd {{invocation_directory()}} && \
     podman run --rm -it --userns=keep-id \
     --workdir /bsp \
