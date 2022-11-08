@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-FROM build-env-arm-multi:latest
+ARG TOOLCHAIN_VERSION=2021.07
+
+FROM build-env-arm-multi:$TOOLCHAIN_VERSION
 
 ARG PTXDIST_VERSION=2022.09.0
 
@@ -16,6 +18,7 @@ RUN apt-get clean && \
         cmake \
         dialog \
         groff-base \
+        libc6-dev \
         libdbus-1-dev \
         libffi-dev \
         libglib2.0-dev \
