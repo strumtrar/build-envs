@@ -1,23 +1,24 @@
-IMAGE := "yocto-build-env"
+IMAGE := "yocto-build-env:latest"
 MACHINE := `echo $HOSTNAME`
+SD := "sdh"
 alias b := build
-alias cv := compile-vexriscv
-alias cr := compile-rocket
+alias c := compile-bsp
 
 cmd := 'bash -i'
 
 @build:
-    podman build -t {{IMAGE}} ~/work/build-envs/yocto-build-env
+    podman build -q -t {{IMAGE}} ~/work/build-envs/yocto-build-env
 
 ps:
     podman ps --all --storage
 
-_connect machine *command=cmd:
+_connect machine *command=cmd: build
     cd {{invocation_directory()}} && \
-    podman run -it --userns=keep-id \
+    podman run -it --rm --userns=keep-id \
     -e MACHINE={{machine}} \
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
+    --volume ~/repos:/repos \
     --volume ~/work/yocto/dl-dir:/bsp/build/downloads \
     --volume ~/work/yocto/sstate-cache:/bsp/build/sstate-cache \
     {{IMAGE}} \
@@ -28,27 +29,94 @@ _init_build_script:
     PWD="{{invocation_directory()}}"
     BUILD_SCRIPT="build-{{MACHINE}}.sh"
     cd $PWD
+    if [ ! -d build ]; then
+        mkdir build
+    fi
     if [ ! -f $BUILD_SCRIPT ]; then
         echo "#!/bin/bash" > $BUILD_SCRIPT
-        echo ". ./oe-init-build-env" >> $BUILD_SCRIPT
+        echo ". ./oe-init-build-env build" >> $BUILD_SCRIPT
         echo "bitbake \$@" >> $BUILD_SCRIPT
         chmod +x $BUILD_SCRIPT
-        if [ ! -d build ]; then
-            mkdir build
+        if [ ! -d build/conf ]; then
+            mkdir -p build/conf
         fi
-        echo "BB_FETCH_PREMIRRORONLY = \"0\"" >> build/conf/auto.conf
-        echo "BB_NO_NETWORK = \"1\"" >> build/conf/auto.conf
-        echo "BB_ALLOWED_NETWORKS = \"\"" >> build/conf/auto.conf
+        if [ ! -e build/conf/auto.conf ]; then
+            echo "BB_FETCH_PREMIRRORONLY = \"0\"" > build/conf/auto.conf
+            echo "BB_NO_NETWORK = \"0\"" >> build/conf/auto.conf
+            echo "BB_ALLOWED_NETWORKS = \"\"" >> build/conf/auto.conf
+            if [ -e $PWD/../.auto.conf ]; then
+                cat $PWD/../.auto.conf >> build/conf/auto.conf
+            fi
+        fi
     fi
 
-compile-bsp target: _init_build_script
+_init_devtool_script:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    DEVTOOL_SCRIPT="devtool-{{MACHINE}}.sh"
+    cd $PWD
+    if [ ! -f $DEVTOOL_SCRIPT ]; then
+        echo "#!/bin/bash" > $DEVTOOL_SCRIPT
+        echo ". ./oe-init-build-env build" >> $DEVTOOL_SCRIPT
+        echo "devtool \$@" >> $DEVTOOL_SCRIPT
+        chmod +x $DEVTOOL_SCRIPT
+    fi
+
+compile-bsp +target: _init_build_script
     cd {{invocation_directory()}} && \
     just _connect {{MACHINE}} /bsp/build-{{MACHINE}}.sh {{target}}
 
-compile-vexriscv: 
+devtool +target: _init_devtool_script
     cd {{invocation_directory()}} && \
-    just _connect /bsp/build-vexriscv.sh
+    just _connect {{MACHINE}} /bsp/devtool-{{MACHINE}}.sh {{target}}
 
-compile-rocket:
-    cd {{invocation_directory()}} && \
-    just _connect /bsp/build-rocket.sh
+_sd-host:
+    labgrid-client sd-mux host
+
+_sd-client:
+    labgrid-client sd-mux client
+
+##rsync: (compile-bsp "core-image-minimal")
+rsync: _sd-host && _sd-client
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    sleep 3
+    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit rlabA-srv:ptxsoc.bit
+    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/core-image-minimal-ecpix5-vexriscv.wic rlabA-srv:ecpix.wic
+    ssh rlabA-srv -- cp ecpix.wic /dev/sde
+
+local:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    MEDIA="/run/media/smull/boot"
+    usbsdmux /dev/sg8 host
+    sleep 5
+    udisksctl mount -b /dev/sdh1
+    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/Image $MEDIA/Image
+    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/litex-vexriscv-ecpix5.dtb $MEDIA/
+    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/boot.json $MEDIA/boot.json
+    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/fw_jump.bin $MEDIA/fw_jump.bin
+    #rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/core-image-minimal-ecpix5-vexriscv.cpio $MEDIA/rootfs.cpio
+    udisksctl unmount -b /dev/sdh1
+    usbsdmux /dev/sg8 dut
+    sleep 2
+    sudo openFPGALoader {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit
+
+wic:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    usbsdmux /dev/sg8 host
+    sleep 5
+    cp {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/core-image-minimal-ecpix5-vexriscv.wic /dev/sdh
+    usbsdmux /dev/sg8 dut
+    sleep 2
+    sudo openFPGALoader {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit
+
+test: rsync
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    ssh rlabA-srv -- /home/str/openFPGALoader ptxsoc.bit
+
+local-test:
+    #!/usr/bin/env bash
+    sudo openFPGALoader -f {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit

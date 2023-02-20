@@ -1,9 +1,10 @@
-IMAGE := "build-env-riscv:latest"
+IMAGE := "build-env-x86:latest"
 USER_SRC := `whoami`
 USER_DEST := "str"
 
 alias b := build
 alias c := compile
+alias r := rsync
 alias t := test
 
 PROJ := `basename $(pwd)`
@@ -13,7 +14,7 @@ cmd := 'bash -i'
 default: compile
 
 @build:
-    podman build -q -t {{IMAGE}} ~/work/build-envs/riscv
+    podman build -q -t {{IMAGE}} ~/work/build-envs/x86
 
 ps:
     podman ps --all --storage
@@ -36,12 +37,6 @@ _unlock:
 _pw +dir="on":
     labgrid-client pw {{dir}}
 
-_sd-host:
-    labgrid-client sd-mux host
-
-_sd-client:
-    labgrid-client sd-mux client
-
 _create-builddir:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
@@ -59,8 +54,8 @@ _create-builddir:
     cd {{invocation_directory()}} && \
     podman run --rm -it --userns=keep-id \
     -e ARCH=$ARCH \
-    -e CROSS_COMPILE=$CROSS_COMPILE \
     --workdir /{{ PROJ }} \
+    --volume "~/repos:/repos \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
     {{IMAGE}} \
@@ -74,17 +69,16 @@ _create-builddir:
     cd {{invocation_directory()}} && \
     just connect make O=/build -j$(nproc) {{parameters}}
 
-_rsync: _lock _sd-host compile && _sd-client
+rsync: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
-    ssh rlabA-srv -- pmount sdb1
-    rsync -avzL {{invocation_directory()}}/build/$KERNELIMAGE rlabA-srv:/media/sdb1/Image
-    rsync -avzL {{invocation_directory()}}/build/$DEVICETREE rlabA-srv:/media/sdb1/
-    ssh rlabA-srv -- pumount sdb1
+    if [[ $PWD =~ .*kernel*. ]]; then
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/home/str/work/customers/ptx/DistroKit/platform-x86_64/root/root/{{USER_DEST}}-linux-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-x86-com-e
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+    fi
 
-test: _rsync
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    ssh rlabA-srv -- /home/str/openFPGALoader ptxsoc.bit
+test: rsync _lock _pw _con && (_pw "off") _unlock
 
 lg: _lock _pw _con && (_pw "off") _unlock

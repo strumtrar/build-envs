@@ -12,6 +12,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengut
 RUN apt-get clean && \
     apt-get update
 
+RUN apt search oselas
+RUN echo $TOOLCHAIN
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         $TOOLCHAIN \
         bc \
@@ -21,6 +23,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         flex \
         git-core \
         libncurses5-dev \
+        libssl-dev \
         locales \
 	lz4 \
 	lzop \

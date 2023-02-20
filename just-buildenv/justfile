@@ -1,9 +1,11 @@
 build oselas:
     #!/usr/bin/env bash
 
+    set -x
+
     if [[ {{oselas}} == "2022.10" ]]; then
         TOOLCHAIN="oselas.toolchain-2022.10-arm-v7a-linux-gnueabihf"
-        TOOLCHAIN="$TOOLCHAIN oselas.toolchain-2022.10.0-aarch64-v8a-linux-gnu"
+        TOOLCHAIN="oselas.toolchain-2022.10.0-aarch64-v8a-linux-gnu"
     elif [[ {{oselas}} == "2021.07" ]]; then
         TOOLCHAIN="oselas.toolchain-2021.07.0-arm-v7a-linux-gnueabihf"
         TOOLCHAIN="$TOOLCHAIN oselas.toolchain-2021.07.0-arm-v7a-linux-gnueabihf"

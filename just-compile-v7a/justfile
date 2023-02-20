@@ -1,6 +1,8 @@
-IMAGE := "build-env-arm-v7a:latest"
 USER_SRC := `whoami`
 USER_DEST := "str"
+TOOLCHAIN := env_var('TOOLCHAIN')
+TOOLCHAIN_VERSION := `echo $TOOLCHAIN | cut -d- -f2 | cut -d. -f1,2`
+IMAGE := "build-env-arm-multi:" + "OSELAS.Toolchain-" + TOOLCHAIN_VERSION
 
 alias b := build
 alias c := compile
@@ -14,7 +16,7 @@ cmd := 'bash -i'
 default: compile
 
 @build:
-    podman build -q -t {{IMAGE}} ~/work/build-envs/arm-v7a
+    podman build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} ~/work/build-envs/arm-multi
 
 ps:
     podman ps --all --storage
@@ -24,6 +26,7 @@ _con:
 
 _lock:
     #!/usr/bin/env bash
+    set -x
     if [[ -n $LG_PLACE ]]; then
         labgrid-client who | grep $LG_PLACE
         if [ $? != 0 ]; then
@@ -36,6 +39,9 @@ _unlock:
 
 _pw +dir="on":
     labgrid-client pw {{dir}}
+
+_pwcyc:
+    labgrid-client pw cycle
 
 _create-builddir:
     #!/usr/bin/env bash
@@ -72,16 +78,24 @@ _create-builddir:
 @compile *parameters:
     cd {{invocation_directory()}} && \
     just connect make O=/build -j$(nproc) {{parameters}}
+    just connect make O=/build -j$(nproc) compile_commands.json
 
 rsync: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
-    	rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+        if [[ ! -z $DEVICETREE ]]; then
+            rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+        fi
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+        if [ -e {{invocation_directory()}}/build/$XLOADIMAGE ]; then
+            rsync -avz {{invocation_directory()}}/build/$XLOADIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-xload-$HOSTNAME
+        fi
     fi
+
+restart: rsync _pwcyc
 
 test: rsync _lock _pw _con && (_pw "off") _unlock
 
