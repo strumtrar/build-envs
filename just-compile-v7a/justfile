@@ -3,6 +3,7 @@ USER_DEST := "str"
 TOOLCHAIN := env_var('TOOLCHAIN')
 TOOLCHAIN_VERSION := `echo $TOOLCHAIN | cut -d- -f2 | cut -d. -f1,2`
 IMAGE := "build-env-arm-multi:" + "OSELAS.Toolchain-" + TOOLCHAIN_VERSION
+ROOT := env_var('ROOT')
 
 alias b := build
 alias c := compile
@@ -16,13 +17,13 @@ cmd := 'bash -i'
 default: compile
 
 @build:
-    podman build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} ~/work/build-envs/arm-multi
+    podman build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} {{ROOT}}/build-envs/arm-multi
 
 ps:
     podman ps --all --storage
 
 _con:
-    labgrid-client con
+    labgrid-client con --logfile {{ROOT}}/logs/`date +"%Y_%m_%d_%I_%M"`.log
 
 _lock:
     #!/usr/bin/env bash
@@ -32,6 +33,16 @@ _lock:
         if [ $? != 0 ]; then
             labgrid-client lock
         fi
+    fi
+
+_saveconfig:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd $PWD
+    if [[ $PWD =~ .*kernel*. ]]; then 
+        cp build/.config {{ROOT}}/configs/kernelconfig
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        cp build/.config {{ROOT}}/configs/bareboxconfig
     fi
 
 _unlock:
@@ -75,7 +86,7 @@ _create-builddir:
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
 
-@compile *parameters:
+@compile *parameters: (_saveconfig)
     cd {{invocation_directory()}} && \
     just connect make O=/build -j$(nproc) {{parameters}}
     just connect make O=/build -j$(nproc) compile_commands.json
