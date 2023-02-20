@@ -25,6 +25,7 @@ RUN apt-get clean && \
         libpcre++-dev \
         libusb-dev \
 	make \
+	man \
 	python3 \
 	python3-dev \
 	python3-jinja2 \
