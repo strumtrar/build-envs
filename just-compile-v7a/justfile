@@ -10,7 +10,7 @@ alias c := compile
 alias r := rsync
 alias t := test
 
-PROJ := `basename $(pwd)`
+PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
 
 cmd := 'bash -i'
 
