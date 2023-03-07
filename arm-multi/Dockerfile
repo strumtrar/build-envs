@@ -12,8 +12,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengut
 RUN apt-get clean && \
     apt-get update
 
-RUN apt search oselas
-RUN echo $TOOLCHAIN
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         $TOOLCHAIN \
         bc \
@@ -30,13 +28,18 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	lzop \
         python \
         python3 \
+        python3-dev \
+        python3-pip \
         screen \
+        swig \
         sudo \
         unzip \
         wget \
         xz-utils \
+        yamllint \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
+RUN pip3 install dtschema
 
-RUN  apt-get clean
+RUN apt-get clean
