@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-FROM debian:11
+FROM debian:latest
 
 ARG TOOLCHAIN="oselas.toolchain-2021.07.0-arm-v7a-linux-gnueabihf-gcc-11.1.1-clang-12.0.0-glibc-2.33-binutils-2.36.1-kernel-5.12.4-sanitized"
 
@@ -19,6 +19,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         bc \
         bison \
         build-essential \
+        ccache \
         chrpath \
         flex \
         git-core \
