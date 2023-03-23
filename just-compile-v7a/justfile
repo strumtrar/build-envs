@@ -72,6 +72,7 @@ _create-builddir:
     podman run --rm -it --userns=keep-id \
     -e ARCH=$ARCH \
     -e CROSS_COMPILE=$CROSS_COMPILE \
+    -e CC="ccache gcc" \
     --workdir /{{ PROJ }} \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
