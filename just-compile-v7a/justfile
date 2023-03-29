@@ -121,6 +121,11 @@ copy: (compile "host")
         fi
     fi
 
+@dtcheck *parameters:
+    cd {{invocation_directory()}} && \
+    just connect make O=/build -j$(nproc) dt_binding_check DT_SCHEMA_FILES={{parameters}}
+    just connect make O=/build -j$(nproc) dtbs_check DT_SCHEMA_FILES={{parameters}}
+
 rsync: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
