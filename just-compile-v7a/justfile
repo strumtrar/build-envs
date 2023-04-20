@@ -126,6 +126,11 @@ copy: (compile "host")
     just connect make O=/build -j$(nproc) dt_binding_check DT_SCHEMA_FILES={{parameters}}
     just connect make O=/build -j$(nproc) dtbs_check DT_SCHEMA_FILES={{parameters}}
 
+@boot_bin: compile
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd bosch_be && mkimage -T zynqmpbif -d boot.bif boot.bin
+
 rsync: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
