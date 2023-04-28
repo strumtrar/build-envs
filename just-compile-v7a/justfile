@@ -1,26 +1,33 @@
 USER_SRC := `whoami`
 USER_DEST := "str"
+ARCH := env_var('ARCH')
+CROSS_COMPILE := env_var('CROSS_COMPILE')
 TOOLCHAIN := env_var('TOOLCHAIN')
 TOOLCHAIN_VERSION := `echo $TOOLCHAIN | cut -d- -f2 | cut -d. -f1,2`
 IMAGE := "build-env-arm-multi:" + "OSELAS.Toolchain-" + TOOLCHAIN_VERSION
 ROOT := env_var('ROOT')
+POD := env_var('PODMAN')
+PODFLAGS := env_var('PODMANFLAGS')
+PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
 
 alias b := build
 alias c := compile
 alias r := rsync
 alias t := test
-
-PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
+alias l := lg
 
 cmd := 'bash -i'
 
 default: compile
 
 @build:
-    podman build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} {{ROOT}}/build-envs/arm-multi
+    {{POD}} build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} {{ROOT}}/build-envs/arm-multi
+
+done *tag:
+    {{POD}} save --compress {{ROOT}}_{{tag}} {{IMAGE}}
 
 ps:
-    podman ps --all --storage
+    {{POD}} ps --all --storage
 
 _con:
     labgrid-client con --logfile {{ROOT}}/logs/`date +"%Y_%m_%d_%I_%M"`.log
@@ -69,10 +76,10 @@ _create-builddir:
 
 @_connect *command=cmd: build _create-builddir
     cd {{invocation_directory()}} && \
-    podman run --rm -it --userns=keep-id \
+    {{POD}} run --rm -it \
+    {{PODFLAGS}} \
     -e ARCH=$ARCH \
     -e CROSS_COMPILE=$CROSS_COMPILE \
-    -e CC="ccache gcc" \
     --workdir /{{ PROJ }} \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
@@ -87,10 +94,32 @@ _create-builddir:
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
 
-@compile *parameters: (_saveconfig)
-    cd {{invocation_directory()}} && \
-    just connect make O=/build -j$(nproc) {{parameters}}
-    just connect make O=/build -j$(nproc) compile_commands.json
+@compile target="container" *parameters="": (_saveconfig)
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd $PWD
+    if [[ {{target}} =~ .*container*. ]]; then
+        just connect make O=/build -j$(nproc) {{parameters}}
+        just connect make O=/build -j$(nproc) compile_commands.json
+    else
+        ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} make O=build -j$(nproc) {{parameters}}
+        ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} make O=build -j$(nproc) compile_commands.json
+    fi
+
+copy: (compile "host")
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    if [[ $PWD =~ .*kernel*. ]]; then
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE /tftpboot/{{USER_DEST}}-linux-$HOSTNAME
+        if [[ ! -z $DEVICETREE ]]; then
+            rsync -avz {{invocation_directory()}}/build/$DEVICETREE /tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+        fi
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE /tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+        if [ -e {{invocation_directory()}}/build/$XLOADIMAGE ]; then
+            rsync -avz {{invocation_directory()}}/build/$XLOADIMAGE /tftpboot/{{USER_DEST}}-xload-$HOSTNAME
+        fi
+    fi
 
 rsync: compile
     #!/usr/bin/env bash
