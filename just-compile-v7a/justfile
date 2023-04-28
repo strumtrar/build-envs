@@ -2,6 +2,7 @@ USER_SRC := `whoami`
 USER_DEST := "str"
 ARCH := env_var('ARCH')
 CROSS_COMPILE := env_var('CROSS_COMPILE')
+CUSTOMER := env_var('CUSTOMER')
 TOOLCHAIN := env_var('TOOLCHAIN')
 TOOLCHAIN_VERSION := `echo $TOOLCHAIN | cut -d- -f2 | cut -d. -f1,2`
 IMAGE := "build-env-arm-multi:" + "OSELAS.Toolchain-" + TOOLCHAIN_VERSION
@@ -23,11 +24,17 @@ default: compile
 @build:
     {{POD}} build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} {{ROOT}}/build-envs/arm-multi
 
+tag +task:
+    {{POD}} image tag {{IMAGE}} {{CUSTOMER}}:{{task}}
+
 done *tag:
     {{POD}} save --compress {{ROOT}}_{{tag}} {{IMAGE}}
 
 ps:
     {{POD}} ps --all --storage
+
+rm +image:
+    {{POD}} rm {{image}}
 
 _con:
     labgrid-client con --logfile {{ROOT}}/logs/`date +"%Y_%m_%d_%I_%M"`.log
@@ -80,9 +87,22 @@ _pw +dir="on":
 _pwcyc:
     labgrid-client pw cycle
 
-@_connect *command=cmd: build _create-builddir
+_create-builddir:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
+    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
+    cd $PWD
+    if [ ! -L build ]; then
+        echo "Creating $BUILDDIR"
+        mkdir -p $BUILDDIR
+        echo "Creating $BUILDDIR link"
+        ln -sf $BUILDDIR build
+    fi    
+
+@_connect flags="--rm" *command=cmd: build _create-builddir
     cd {{invocation_directory()}} && \
-    {{POD}} run --rm -it \
+    {{POD}} run {{flags}} -it \
     {{PODFLAGS}} \
     -e ARCH=$ARCH \
     -e CROSS_COMPILE=$CROSS_COMPILE \
@@ -94,13 +114,17 @@ _pwcyc:
 
 @connect *command=cmd:
     cd {{invocation_directory()}} && \
-    just _connect {{command}}
+    just _connect --rm {{command}}
 
 @objdump *parameters:
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
 
-compile target="container" *parameters="": (_saveconfig)
+@freeze +task: (_saveconfig)
+    just _connect "" make O=/build -j$(nproc)
+    just tag {{task}}
+
+@compile target="container" *parameters="": (_saveconfig)
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
