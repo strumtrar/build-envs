@@ -42,10 +42,29 @@ _lock:
         fi
     fi
 
-_saveconfig:
+_create-builddir:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
+    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
+    cd $PWD
+    if [ ! -L build ]; then
+        echo "Creating $BUILDDIR"
+        mkdir -p $BUILDDIR
+        echo "Creating $BUILDDIR link"
+        ln -sf $BUILDDIR build
+    fi    
+
+_saveconfig: _create-builddir
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
+    if [[ ! -e build ]]; then
+        exit 0
+    fi
+    if [[ ! -e build/.config ]]; then
+        exit 0
+    fi
     if [[ $PWD =~ .*kernel*. ]]; then 
         cp build/.config {{ROOT}}/configs/kernelconfig
     elif [[ $PWD =~ .*barebox*. ]]; then
@@ -60,19 +79,6 @@ _pw +dir="on":
 
 _pwcyc:
     labgrid-client pw cycle
-
-_create-builddir:
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
-    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
-    cd $PWD
-    if [ ! -L build ]; then
-        echo "Creating $BUILDDIR"
-        mkdir -p $BUILDDIR
-        echo "Creating $BUILDDIR link"
-        ln -sf $BUILDDIR build
-    fi    
 
 @_connect *command=cmd: build _create-builddir
     cd {{invocation_directory()}} && \
@@ -94,7 +100,7 @@ _create-builddir:
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
 
-@compile target="container" *parameters="": (_saveconfig)
+compile target="container" *parameters="": (_saveconfig)
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
