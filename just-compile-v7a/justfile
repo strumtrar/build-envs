@@ -141,15 +141,12 @@ rsync: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE /srv/tftp/{{USER_DEST}}-linux-$HOSTNAME && \
         if [[ ! -z $DEVICETREE ]]; then
-            rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+            rsync -avz {{invocation_directory()}}/build/$DEVICETREE /srv/tftp/{{USER_DEST}}-oftree-$HOSTNAME
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
-        if [ -e {{invocation_directory()}}/build/$XLOADIMAGE ]; then
-            rsync -avz {{invocation_directory()}}/build/$XLOADIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-xload-$HOSTNAME
-        fi
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE ~/work/customers/bosch.be.ppm4/petalinux-docker/zcu102/images/linux/barebox-zynqmp-ppm4.img
     fi
 
 restart: rsync _pwcyc
