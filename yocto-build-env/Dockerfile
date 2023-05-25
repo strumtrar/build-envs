@@ -18,6 +18,7 @@ RUN apt-get clean && \
         locales \
         libncurses6 \
 	lz4 \
+        parted \
         pkg-config \
         procps \
         python \
