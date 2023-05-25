@@ -1,5 +1,5 @@
 USER_SRC := `whoami`
-USER_DEST := "str"
+USER_DEST := "smull"
 ARCH := env_var('ARCH')
 CROSS_COMPILE := env_var('CROSS_COMPILE')
 CUSTOMER := env_var('CUSTOMER')
@@ -87,19 +87,6 @@ _pw +dir="on":
 _pwcyc:
     labgrid-client pw cycle
 
-_create-builddir:
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
-    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
-    cd $PWD
-    if [ ! -L build ]; then
-        echo "Creating $BUILDDIR"
-        mkdir -p $BUILDDIR
-        echo "Creating $BUILDDIR link"
-        ln -sf $BUILDDIR build
-    fi    
-
 @_connect flags="--rm" *command=cmd: build _create-builddir
     cd {{invocation_directory()}} && \
     {{POD}} run {{flags}} -it \
@@ -124,7 +111,7 @@ _create-builddir:
     just _connect "" make O=/build -j$(nproc)
     just tag {{task}}
 
-@compile target="container" *parameters="": (_saveconfig)
+compile target="container" *parameters="": (_saveconfig)
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
@@ -159,9 +146,11 @@ copy: (compile "host")
 @boot_bin: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
-    cd bosch_be && mkimage -T zynqmpbif -d boot.bif boot.bin
+    if [[ $PWD =~ .*barebox*. ]]; then
+        cd bosch_be && mkimage -T zynqmpbif -d boot.bif boot.bin
+    fi
 
-rsync: compile
+@rsync: compile boot_bin
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
@@ -171,6 +160,9 @@ rsync: compile
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE ~/work/customers/bosch.be.ppm4/petalinux-docker/zcu102/images/linux/barebox-zynqmp-ppm4.img
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE /srv/tftp/{{USER_DEST}}-barebox-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin /home/{{USER_DEST}}/nfsroot/$HOSTNAME/root/boot.bin
     fi
 
 restart: rsync _pwcyc

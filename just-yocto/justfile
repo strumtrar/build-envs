@@ -1,6 +1,7 @@
+USER_SRC := `whoami`
+USER_DEST := "smull"
 IMAGE := "yocto-build-env:latest"
-MACHINE := `echo $HOSTNAME`
-SD := "sdh"
+MACHINE := `echo $MACHINE`
 alias b := build
 alias c := compile-bsp
 
@@ -70,53 +71,8 @@ devtool +target: _init_devtool_script
     cd {{invocation_directory()}} && \
     just _connect {{MACHINE}} /bsp/devtool-{{MACHINE}}.sh {{target}}
 
-_sd-host:
-    labgrid-client sd-mux host
-
-_sd-client:
-    labgrid-client sd-mux client
-
-##rsync: (compile-bsp "core-image-minimal")
-rsync: _sd-host && _sd-client
+rsync:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
-    sleep 3
-    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit rlabA-srv:ptxsoc.bit
-    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/core-image-minimal-ecpix5-vexriscv.wic rlabA-srv:ecpix.wic
-    ssh rlabA-srv -- cp ecpix.wic /dev/sde
-
-local:
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    MEDIA="/run/media/smull/boot"
-    usbsdmux /dev/sg8 host
-    sleep 5
-    udisksctl mount -b /dev/sdh1
-    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/Image $MEDIA/Image
-    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/litex-vexriscv-ecpix5.dtb $MEDIA/
-    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/boot.json $MEDIA/boot.json
-    rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/fw_jump.bin $MEDIA/fw_jump.bin
-    #rsync -avzL {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/core-image-minimal-ecpix5-vexriscv.cpio $MEDIA/rootfs.cpio
-    udisksctl unmount -b /dev/sdh1
-    usbsdmux /dev/sg8 dut
-    sleep 2
-    sudo openFPGALoader {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit
-
-wic:
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    usbsdmux /dev/sg8 host
-    sleep 5
-    cp {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/core-image-minimal-ecpix5-vexriscv.wic /dev/sdh
-    usbsdmux /dev/sg8 dut
-    sleep 2
-    sudo openFPGALoader {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit
-
-test: rsync
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    ssh rlabA-srv -- /home/str/openFPGALoader ptxsoc.bit
-
-local-test:
-    #!/usr/bin/env bash
-    sudo openFPGALoader -f {{invocation_directory()}}/build/tmp/deploy/images/ecpix5-vexriscv/ptxsoc.bit
+    rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/BOOT.BIN /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
+    rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4-20230524134104.rootfs.wic.gz /srv/tftp/{{USER_DEST}}-wic-$HOSTNAME
