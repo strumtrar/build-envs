@@ -1,5 +1,5 @@
 USER_SRC := `whoami`
-USER_DEST := "smull"
+USER_DEST := "str"
 ARCH := env_var('ARCH')
 CROSS_COMPILE := env_var('CROSS_COMPILE')
 CUSTOMER := env_var('CUSTOMER')
@@ -37,7 +37,7 @@ rm +image:
     {{POD}} rm {{image}}
 
 _con:
-    labgrid-client con --logfile {{ROOT}}/logs/`date +"%Y_%m_%d_%I_%M"`.log
+    labgrid-client con A_UART --logfile {{ROOT}}/logs/`date +"%Y_%m_%d_%I_%M"`.log
 
 _lock:
     #!/usr/bin/env bash
@@ -111,7 +111,7 @@ _pwcyc:
     just _connect "" make O=/build -j$(nproc)
     just tag {{task}}
 
-compile target="container" *parameters="": (_saveconfig)
+@compile target="container" *parameters="": (_saveconfig)
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
@@ -150,19 +150,17 @@ copy: (compile "host")
         cd bosch_be && mkimage -T zynqmpbif -d boot.bif boot.bin
     fi
 
-@rsync: compile boot_bin
+rsync: compile boot_bin
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE /srv/tftp/{{USER_DEST}}-linux-$HOSTNAME && \
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
         if [[ ! -z $DEVICETREE ]]; then
-            rsync -avz {{invocation_directory()}}/build/$DEVICETREE /srv/tftp/{{USER_DEST}}-oftree-$HOSTNAME
+            rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE ~/work/customers/bosch.be.ppm4/petalinux-docker/zcu102/images/linux/barebox-zynqmp-ppm4.img
-        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE /srv/tftp/{{USER_DEST}}-barebox-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin /home/{{USER_DEST}}/nfsroot/$HOSTNAME/root/boot.bin
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin $LG_PROXY:/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
     fi
 
 restart: rsync _pwcyc

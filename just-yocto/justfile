@@ -2,13 +2,14 @@ USER_SRC := `whoami`
 USER_DEST := "smull"
 IMAGE := "yocto-build-env:latest"
 MACHINE := `echo $MACHINE`
+ROOT := env_var('ROOT')
 alias b := build
 alias c := compile-bsp
 
 cmd := 'bash -i'
 
 @build:
-    podman build -q -t {{IMAGE}} ~/work/build-envs/yocto-build-env
+    podman build -q -t {{IMAGE}} {{ROOT}}/build-envs/yocto-build-env
 
 ps:
     podman ps --all --storage
@@ -63,16 +64,33 @@ _init_devtool_script:
         chmod +x $DEVTOOL_SCRIPT
     fi
 
+_init_wic_script:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    WIC_SCRIPT="wic-{{MACHINE}}.sh"
+    cd $PWD
+    if [ ! -f $WIC_SCRIPT ]; then
+        echo "#!/bin/bash" > $WIC_SCRIPT
+        echo ". ./oe-init-build-env build" >> $WIC_SCRIPT
+        echo "wic \$@" >> $WIC_SCRIPT
+        chmod +x $WIC_SCRIPT
+    fi
+
 compile-bsp +target: _init_build_script
     cd {{invocation_directory()}} && \
     just _connect {{MACHINE}} /bsp/build-{{MACHINE}}.sh {{target}}
+    notify-send -i ~/cfg/x/builder.png "{{MACHINE}} :: {{target}} done"
 
 devtool +target: _init_devtool_script
     cd {{invocation_directory()}} && \
     just _connect {{MACHINE}} /bsp/devtool-{{MACHINE}}.sh {{target}}
 
+wic +target: _init_wic_script
+    cd {{invocation_directory()}} && \
+    just _connect {{MACHINE}} /bsp/wic-{{MACHINE}}.sh {{target}}
+
 rsync:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/BOOT.BIN /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
-    rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4-20230524134104.rootfs.wic.gz /srv/tftp/{{USER_DEST}}-wic-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz /srv/tftp/{{USER_DEST}}-wic-$HOSTNAME
