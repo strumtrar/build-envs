@@ -19,7 +19,7 @@ platform:
     echo $PLATFORM
 
 @build:
-    podman build -q -t {{IMAGE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} ~/work/build-envs/ptxdist-build-env
+    podman build -q -t {{IMAGE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} $PRJ_ROOT/build-envs/ptxdist-build-env
 
 ps:
     podman ps --all --storage
@@ -30,6 +30,7 @@ ps:
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
     --volume /opt/ptxdist/src:/bsp/src \
+    --network=host \
     {{IMAGE}} \
     {{command}}
 

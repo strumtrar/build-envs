@@ -6,7 +6,7 @@ CUSTOMER := env_var('CUSTOMER')
 TOOLCHAIN := env_var('TOOLCHAIN')
 TOOLCHAIN_VERSION := `echo $TOOLCHAIN | cut -d- -f2 | cut -d. -f1,2`
 IMAGE := "build-env-arm-multi:" + "OSELAS.Toolchain-" + TOOLCHAIN_VERSION
-ROOT := env_var('ROOT')
+ROOT := env_var('PRJ_ROOT')
 POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
 PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
@@ -14,8 +14,6 @@ PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
 alias b := build
 alias c := compile
 alias r := rsync
-alias t := test
-alias l := lg
 
 cmd := 'bash -i'
 
@@ -35,19 +33,6 @@ ps:
 
 rm +image:
     {{POD}} rm {{image}}
-
-_con:
-    labgrid-client con A_UART --logfile {{ROOT}}/logs/`date +"%Y_%m_%d_%I_%M"`.log
-
-_lock:
-    #!/usr/bin/env bash
-    set -x
-    if [[ -n $LG_PLACE ]]; then
-        labgrid-client who | grep $LG_PLACE
-        if [ $? != 0 ]; then
-            labgrid-client lock
-        fi
-    fi
 
 _create-builddir:
     #!/usr/bin/env bash
@@ -78,15 +63,6 @@ _saveconfig: _create-builddir
         cp build/.config {{ROOT}}/configs/bareboxconfig
     fi
 
-_unlock:
-    labgrid-client unlock
-
-_pw +dir="on":
-    labgrid-client pw {{dir}}
-
-_pwcyc:
-    labgrid-client pw cycle
-
 @_connect flags="--rm" *command=cmd: build _create-builddir
     cd {{invocation_directory()}} && \
     {{POD}} run {{flags}} -it \
@@ -111,7 +87,7 @@ _pwcyc:
     just _connect "" make O=/build -j$(nproc)
     just tag {{task}}
 
-@compile target="container" *parameters="": (_saveconfig)
+compile target="container" *parameters="": (_saveconfig)
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
@@ -155,16 +131,13 @@ rsync: compile boot_bin
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE /srv/tftp/{{USER_DEST}}-linux-$HOSTNAME && \
         if [[ ! -z $DEVICETREE ]]; then
             rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
         rsync -avz {{invocation_directory()}}/bosch_be/boot.bin $LG_PROXY:/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE /srv/tftp/{{USER_DEST}}-barebox-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
     fi
-
-restart: rsync _pwcyc
-
-test: rsync _lock _pw _con && (_pw "off") _unlock
-
-lg: _lock _pw _con && (_pw "off") _unlock

@@ -2,7 +2,7 @@ USER_SRC := `whoami`
 USER_DEST := "smull"
 IMAGE := "yocto-build-env:latest"
 MACHINE := `echo $MACHINE`
-ROOT := env_var('ROOT')
+ROOT := env_var('PRJ_ROOT')
 alias b := build
 alias c := compile-bsp
 
@@ -76,6 +76,18 @@ _init_wic_script:
         chmod +x $WIC_SCRIPT
     fi
 
+_init_run_native:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    OE_SCRIPT="oe-run-native-{{MACHINE}}.sh"
+    cd $PWD
+    if [ ! -f $OE_SCRIPT ]; then
+        echo "#!/bin/bash" > $OE_SCRIPT
+        echo ". ./oe-init-build-env build" >> $OE_SCRIPT
+        echo "oe-run-native \$@" >> $OE_SCRIPT
+        chmod +x $OE_SCRIPT
+    fi
+
 compile-bsp +target: _init_build_script
     cd {{invocation_directory()}} && \
     just _connect {{MACHINE}} /bsp/build-{{MACHINE}}.sh {{target}}
@@ -89,8 +101,15 @@ wic +target: _init_wic_script
     cd {{invocation_directory()}} && \
     just _connect {{MACHINE}} /bsp/wic-{{MACHINE}}.sh {{target}}
 
+rauc target file: _init_run_native
+    cd {{invocation_directory()}} && \
+    just _connect {{MACHINE}} /bsp/oe-run-native-{{MACHINE}}.sh rauc-native rauc --no-verify {{target}} {{file}}
+
 rsync:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/BOOT.BIN /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
     rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz /srv/tftp/{{USER_DEST}}-wic-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz ~/nfsroot/zynqmp-ppm4/root/wic.gz
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz $LG_PROXY:/tftpboot/{{USER_DEST}}-wic-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-bundle-ppm4.raucb $LG_PROXY:/tftpboot/{{USER_DEST}}-raucb-$HOSTNAME
