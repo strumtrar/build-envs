@@ -12,6 +12,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengut
 RUN apt-get clean && \
     apt-get update
 
+ENV TZ="Europe/Berlin"
+
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         $TOOLCHAIN \
         bc \
