@@ -23,6 +23,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         chrpath \
         flex \
         git-core \
+	icecc \
         libncurses5-dev \
         libssl-dev \
         locales \
@@ -45,3 +46,5 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 RUN pip3 install dtschema
 
 RUN apt-get clean
+
+CMD iceccd -vvv -n ICECREAM &
