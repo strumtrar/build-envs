@@ -22,18 +22,6 @@ default: compile
 @build:
     {{POD}} build -q -t {{IMAGE}} --build-arg=TOOLCHAIN={{TOOLCHAIN}} {{ROOT}}/build-envs/arm-multi
 
-tag +task:
-    {{POD}} image tag {{IMAGE}} {{CUSTOMER}}:{{task}}
-
-done *tag:
-    {{POD}} save --compress {{ROOT}}_{{tag}} {{IMAGE}}
-
-ps:
-    {{POD}} ps --all --storage
-
-rm +image:
-    {{POD}} rm {{image}}
-
 _create-builddir:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
@@ -57,10 +45,20 @@ _saveconfig: _create-builddir
     if [[ ! -e build/.config ]]; then
         exit 0
     fi
+
+    HASH=$(echo $(git describe --always))
+    HASH=`echo $HASH | tr '[/]' '[_]'`
+
     if [[ $PWD =~ .*kernel*. ]]; then 
-        cp build/.config {{ROOT}}/configs/kernelconfig
+        cp build/.config {{ROOT}}/configs/kernelconfig-$HASH
+        cd {{ROOT}}/configs
+        git add .
+        git commit -m "configs: update kernelconfig `date`"
     elif [[ $PWD =~ .*barebox*. ]]; then
-        cp build/.config {{ROOT}}/configs/bareboxconfig
+        cp build/.config {{ROOT}}/configs/bareboxconfig-$HASH
+        cd {{ROOT}}/configs
+        git add .
+        git commit -m "configs: update bareboxconfig `date`"
     fi
 
 @_connect flags="--rm" *command=cmd: build _create-builddir
@@ -82,10 +80,6 @@ _saveconfig: _create-builddir
 @objdump *parameters:
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
-
-@freeze +task: (_saveconfig)
-    just _connect "" make O=/build -j$(nproc)
-    just tag {{task}}
 
 compile target="container" *parameters="": (_saveconfig)
     #!/usr/bin/env bash
@@ -129,15 +123,17 @@ copy: (compile "host")
 rsync: compile boot_bin
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
+    if [[ $MODE == "local" ]]; then
+        REMOTE=""
+    else
+        REMOTE="$LG_PROXY:"
+    fi
     if [[ $PWD =~ .*kernel*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
-        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE /srv/tftp/{{USER_DEST}}-linux-$HOSTNAME && \
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $REMOTE/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
         if [[ ! -z $DEVICETREE ]]; then
-            rsync -avz {{invocation_directory()}}/build/$DEVICETREE $LG_PROXY:/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+            rsync -avz {{invocation_directory()}}/build/$DEVICETREE $REMOTE/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin $LG_PROXY:/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE /srv/tftp/{{USER_DEST}}-barebox-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin $REMOTE/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
     fi
