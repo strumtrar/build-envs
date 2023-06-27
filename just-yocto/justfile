@@ -1,5 +1,5 @@
 USER_SRC := `whoami`
-USER_DEST := "smull"
+USER_DEST := "str"
 IMAGE := "yocto-build-env:latest"
 MACHINE := `echo $MACHINE`
 ROOT := env_var('PRJ_ROOT')
@@ -108,8 +108,7 @@ rauc target file: _init_run_native
 rsync:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
-    rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/BOOT.BIN /srv/tftp/{{USER_DEST}}-bootbin-$HOSTNAME
-    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz /srv/tftp/{{USER_DEST}}-wic-$HOSTNAME
-    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz ~/nfsroot/zynqmp-ppm4/root/wic.gz
-    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz $LG_PROXY:/tftpboot/{{USER_DEST}}-wic-$HOSTNAME
-    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-bundle-ppm4.raucb $LG_PROXY:/tftpboot/{{USER_DEST}}-raucb-$HOSTNAME
+    if [[ $MODE == "local" ]]; then REMOTE=""; else REMOTE="$LG_PROXY:"; fi
+    rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/BOOT.BIN $REMOTE/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz $REMOTE/tftpboot/{{USER_DEST}}-wic-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-bundle-ppm4.raucb $REMOTE/tftpboot/{{USER_DEST}}-raucb-$HOSTNAME
