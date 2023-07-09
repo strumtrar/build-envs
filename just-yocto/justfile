@@ -110,5 +110,7 @@ rsync:
     PWD="{{invocation_directory()}}"
     if [[ $MODE == "local" ]]; then REMOTE=""; else REMOTE="$LG_PROXY:"; fi
     rsync -avz {{invocation_directory()}}/build/tmp/deploy/images/ppm4/BOOT.BIN $REMOTE/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/Image $REMOTE/tftpboot/{{USER_DEST}}-linux-$HOSTNAME
+    rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/zynqmp-ppm4.dtb $REMOTE/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
     rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-image-ppm4.wic.gz $REMOTE/tftpboot/{{USER_DEST}}-wic-$HOSTNAME
     rsync -vz --copy-links {{invocation_directory()}}/build/tmp/deploy/images/ppm4/msd-base-bundle-ppm4.raucb $REMOTE/tftpboot/{{USER_DEST}}-raucb-$HOSTNAME
