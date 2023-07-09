@@ -56,12 +56,6 @@ RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION
      if [ ! -d /.ptxdist ]; then mkdir /.ptxdist; fi && \
      chmod 777 /.ptxdist
 
-EXPOSE 10245/tcp
-EXPOSE 8766/tcp
-EXPOSE 8765/tcp
-EXPOSE 8765/udp
-
 ENV PATH="${PATH}:/opt/ptxdist/bin"
 
-CMD iceccd -vvv -n ICECREAM &
 CMD /bin/bash
