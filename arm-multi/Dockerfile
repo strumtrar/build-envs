@@ -4,7 +4,8 @@
 
 FROM debian:11.6
 
-ARG TOOLCHAIN="oselas.toolchain-2021.07.0-arm-v7a-linux-gnueabihf-gcc-11.1.1-clang-12.0.0-glibc-2.33-binutils-2.36.1-kernel-5.12.4-sanitized"
+ARG TOOLCHAIN=oselas.toolchain-2022.10.1-arm-v7a-linux-gnueabihf \
+	      oselas.toolchain-2022.10.1-aarch64-v8a-linux-gnu
 
 RUN echo 'deb http://debian.pengutronix.de/debian/ bullseye main contrib non-free' >> /etc/apt/sources.list
 RUN DEBIAN_FRONTEND=noninteractive apt -o="Acquire::AllowInsecureRepositories=true" update
@@ -46,5 +47,3 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 RUN pip3 install dtschema
 
 RUN apt-get clean
-
-CMD iceccd -vvv -n ICECREAM &
