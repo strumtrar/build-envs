@@ -55,14 +55,14 @@ _saveconfig: _create-builddir
     HASH=`echo $HASH | tr '[/]' '[_]'`
 
     if [[ $PWD =~ .*kernel*. ]]; then 
-        cp build/.config {{ROOT}}/configs/kernelconfig-$HASH
+        cp build/.config {{ROOT}}/config/kernelconfig-$HASH
         cd {{ROOT}}
         if [[ `git status --porcelain -- configs` ]]; then
                 git add configs
         	git commit -m "configs: update kernelconfig `date`"
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
-        cp build/.config {{ROOT}}/configs/bareboxconfig-$HASH
+        cp build/.config {{ROOT}}/config/bareboxconfig-$HASH
         cd {{ROOT}}
         if [[ `git status --porcelain -- configs` ]]; then
             git add configs
@@ -156,5 +156,4 @@ rsync: compile
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/bosch_be/boot.bin $REMOTE/tftpboot/{{USER_DEST}}-bootbin-$HOSTNAME
     fi
