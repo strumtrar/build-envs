@@ -10,6 +10,7 @@ ROOT := env_var('PRJ_ROOT')
 POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
 PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
+HOOKS := "$PRJ_ROOT/justfiles/just-hooks"
 
 alias b := build
 alias c := compile
@@ -90,7 +91,25 @@ _saveconfig: _create-builddir
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
 
-compile target="container" *parameters="": (_saveconfig)
+pre-hook:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    if [[ $PWD =~ .*kernel*. ]]; then
+        just -f $PRJ_ROOT/justfiles/just-hooks pre-kernel
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        just -f $PRJ_ROOT/justfiles/just-hooks pre-barebox
+    fi
+
+post-hook:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    if [[ $PWD =~ .*kernel*. ]]; then
+        just -f {{HOOKS}} post-kernel
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        just -f {{HOOKS}} post-barebox
+    fi
+
+compile target="container" *parameters="": pre-hook && _saveconfig post-hook
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
@@ -122,14 +141,7 @@ copy: (compile "host")
     just connect make O=/build -j$(nproc) dt_binding_check DT_SCHEMA_FILES={{parameters}}
     just connect make O=/build -j$(nproc) dtbs_check DT_SCHEMA_FILES={{parameters}}
 
-@boot_bin: compile
-    #!/usr/bin/env bash
-    PWD="{{invocation_directory()}}"
-    if [[ $PWD =~ .*barebox*. ]]; then
-        cd bosch_be && mkimage -T zynqmpbif -d boot.bif boot.bin
-    fi
-
-rsync: compile boot_bin
+rsync: compile
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $MODE == "local" ]]; then
