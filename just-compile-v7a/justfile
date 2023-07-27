@@ -91,7 +91,7 @@ _saveconfig: _create-builddir
     cd {{invocation_directory()}} && \
     just connect ${CROSS_COMPILE}objdump -D {{parameters}}
 
-pre-hook:
+pre-compile-hook:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
@@ -100,7 +100,7 @@ pre-hook:
         just -f $PRJ_ROOT/justfiles/just-hooks pre-barebox
     fi
 
-post-hook:
+post-compile-hook:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
@@ -109,7 +109,10 @@ post-hook:
         just -f {{HOOKS}} post-barebox
     fi
 
-compile target="container" *parameters="": pre-hook && _saveconfig post-hook
+post-rsync-hook:
+    just -f {{HOOKS}} post-rsync
+
+compile target="container" *parameters="": pre-compile-hook && _saveconfig post-compile-hook
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
@@ -120,6 +123,7 @@ compile target="container" *parameters="": pre-hook && _saveconfig post-hook
         ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} make O=build -j$(nproc) {{parameters}}
         ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} make O=build -j$(nproc) compile_commands.json
     fi
+    notify-send -i ~/cfg/x/builder.png "Compilation done"
 
 copy: (compile "host")
     #!/usr/bin/env bash
@@ -141,7 +145,7 @@ copy: (compile "host")
     just connect make O=/build -j$(nproc) dt_binding_check DT_SCHEMA_FILES={{parameters}}
     just connect make O=/build -j$(nproc) dtbs_check DT_SCHEMA_FILES={{parameters}}
 
-rsync: compile
+rsync: compile && post-rsync-hook
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $MODE == "local" ]]; then
@@ -157,3 +161,4 @@ rsync: compile
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
     fi
+    notify-send -i ~/cfg/x/bomber.png "Sent files to $REMOTE!"
