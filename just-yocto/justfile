@@ -2,6 +2,7 @@ USER_SRC := `whoami`
 USER_DEST := "str"
 IMAGE := "yocto-build-env:latest"
 MACHINE := `echo $MACHINE`
+DISTRO := env_var('DISTRO')
 ROOT := env_var('PRJ_ROOT')
 alias b := build
 alias c := compile-bsp
@@ -18,6 +19,7 @@ _connect machine *command=cmd: build
     cd {{invocation_directory()}} && \
     podman run -it --rm --userns=keep-id \
     -e MACHINE={{machine}} \
+    -e DISTRO={{DISTRO}} \
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
     --volume ~/repos:/repos \
