@@ -29,7 +29,7 @@ ps:
     podman run --rm -it --userns=keep-id \
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
-    --volume /opt/ptxdist/src:/bsp/src \
+    --volume ~/work/ptxdist/src:/bsp/src \
     --network=host \
     {{IMAGE}} \
     {{command}}
