@@ -23,7 +23,6 @@ RUN apt-get clean && \
         libdbus-1-dev \
         libffi-dev \
         libglib2.0-dev \
-        libpcre++-dev \
         libusb-dev \
 	make \
 	man \
@@ -54,7 +53,9 @@ RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION
      cd .. && \
      rm -rf ptxdist-$PTXDIST_VERSION && \
      if [ ! -d /.ptxdist ]; then mkdir /.ptxdist; fi && \
-     chmod 777 /.ptxdist
+     chmod 777 /.ptxdist && \
+     git config --global user.email "you@example.com" && \
+     git config --global user.name "Your name" && \
 
 ENV PATH="${PATH}:/opt/ptxdist/bin"
 
