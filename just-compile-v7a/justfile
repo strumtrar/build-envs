@@ -155,7 +155,7 @@ rsync: compile && post-rsync-hook
     fi
     if [[ $PWD =~ .*kernel*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $REMOTE/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
-        if [[ ! -z $DEVICETREE ]]; then
+        if [[ ! -z $DEVICETREE && ! -d $DEVICETREE ]]; then
             rsync -avz {{invocation_directory()}}/build/$DEVICETREE $REMOTE/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
