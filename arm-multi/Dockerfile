@@ -17,7 +17,9 @@ RUN apt-get clean && \
 ENV TZ="Europe/Berlin"
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        $TOOLCHAIN \
+        $TOOLCHAIN
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         bc \
         bison \
         build-essential \
