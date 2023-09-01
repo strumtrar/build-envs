@@ -154,11 +154,13 @@ rsync: compile && post-rsync-hook
         REMOTE="$LG_PROXY:"
     fi
     if [[ $PWD =~ .*kernel*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $REMOTE/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
+        rsync -az {{invocation_directory()}}/build/$KERNELIMAGE $REMOTE/tftpboot/{{USER_DEST}}-linux-$HOSTNAME && \
+        notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-linux-$HOSTNAME!"
         if [[ ! -z $DEVICETREE && ! -d $DEVICETREE ]]; then
-            rsync -avz {{invocation_directory()}}/build/$DEVICETREE $REMOTE/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+            rsync -az {{invocation_directory()}}/build/$DEVICETREE $REMOTE/tftpboot/{{USER_DEST}}-oftree-$HOSTNAME
+            notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-oftree-$HOSTNAME!"
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+        notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-barebox-$HOSTNAME!"
     fi
-    notify-send -i ~/cfg/x/bomber.png "Sent files to $REMOTE!"
