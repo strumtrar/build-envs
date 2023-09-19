@@ -163,4 +163,8 @@ rsync: compile && post-rsync-hook
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
         notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-barebox-$HOSTNAME!"
+        if [ -e {{invocation_directory()}}/build/$XLOADIMAGE ]; then
+            rsync -avz {{invocation_directory()}}/build/$XLOADIMAGE $REMOTE/tftpboot/{{USER_DEST}}-xload-$HOSTNAME
+            notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-xload-$HOSTNAME!"
+        fi
     fi
