@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-FROM debian:11.7
+FROM debian:12.1-slim
 
-ARG TOOLCHAIN=oselas.toolchain-2022.10.1-arm-v7a-linux-gnueabihf \
-	      oselas.toolchain-2022.10.1-aarch64-v8a-linux-gnu
+ARG TOOLCHAIN=oselas.toolchain-2023.07.0-arm-v7a-linux-gnueabihf \
+	      oselas.toolchain-2023.07.0-aarch64-v8a-linux-gnu
 
-RUN echo 'deb http://debian.pengutronix.de/debian/ bullseye main contrib non-free' >> /etc/apt/sources.list
+RUN echo 'deb http://debian.pengutronix.de/debian/ bookworm main contrib non-free' >> /etc/apt/sources.list
 RUN DEBIAN_FRONTEND=noninteractive apt -o="Acquire::AllowInsecureRepositories=true" update
 RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengutronix-archive-keyring
 RUN apt-get clean && \
@@ -24,8 +24,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         bison \
         build-essential \
         ccache \
+        ccls \
         chrpath \
         cpio \
+        clangd \
         flex \
         git-core \
 	icecc \
@@ -34,7 +36,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         locales \
 	lz4 \
 	lzop \
-	python \
+	python-is-python3 \
         python3 \
         python3-dev \
         python3-pip \

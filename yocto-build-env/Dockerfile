@@ -13,16 +13,17 @@ RUN apt-get clean && \
         chrpath \
         cpio \
         diffstat \
+        file \
         gawk \
         git-core \
+	kmod \
         locales \
-        libncurses6 \
+	libtinfo5 \
 	lz4 \
         mtools \
         parted \
         pkg-config \
         procps \
-        python \
         python3 \
         python3-distutils \
         screen \
