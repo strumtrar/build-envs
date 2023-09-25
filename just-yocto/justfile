@@ -2,6 +2,7 @@ USER_SRC := `whoami`
 USER_DEST := "str"
 IMAGE := "yocto-build-env:latest"
 MACHINE := `echo $MACHINE`
+BASEIMAGE := env_var('BASEIMAGE')
 DISTRO := env_var('DISTRO')
 ROOT := env_var('PRJ_ROOT')
 alias b := build
@@ -10,7 +11,7 @@ alias c := compile-bsp
 cmd := 'bash -i'
 
 @build:
-    podman build -q -t {{IMAGE}} {{ROOT}}/build-envs/yocto-build-env
+    podman build -q -t {{IMAGE}} --build-arg BASEIMAGE={{BASEIMAGE}} {{ROOT}}/build-envs/yocto-build-env
 
 ps:
     podman ps --all --storage

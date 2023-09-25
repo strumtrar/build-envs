@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-FROM debian:12.1-slim
+ARG BASEIMAGE=debian:12.1-slim
+FROM $BASEIMAGE
 
 ARG TOOLCHAIN=oselas.toolchain-2023.07.0-arm-v7a-linux-gnueabihf \
 	      oselas.toolchain-2023.07.0-aarch64-v8a-linux-gnu
 
+RUN echo 'deb http://debian.pengutronix.de/debian/ bullseye main contrib non-free' >> /etc/apt/sources.list
 RUN echo 'deb http://debian.pengutronix.de/debian/ bookworm main contrib non-free' >> /etc/apt/sources.list
 RUN DEBIAN_FRONTEND=noninteractive apt -o="Acquire::AllowInsecureRepositories=true" update
 RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengutronix-archive-keyring
