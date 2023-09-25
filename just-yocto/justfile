@@ -20,6 +20,7 @@ _connect machine *command=cmd: build
     podman run -it --rm --userns=keep-id \
     -e MACHINE={{machine}} \
     -e DISTRO={{DISTRO}} \
+    --network host \
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
     --volume ~/repos:/repos \
