@@ -148,6 +148,7 @@ copy: (compile "host")
 rsync: compile && post-rsync-hook
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
+
     if [[ $MODE == "local" ]]; then
         REMOTE=""
     else
@@ -161,9 +162,11 @@ rsync: compile && post-rsync-hook
             notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-oftree-$HOSTNAME!"
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
-        rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
-        notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-barebox-$HOSTNAME!"
-        if [ -e {{invocation_directory()}}/build/$XLOADIMAGE ]; then
+        if [ -f {{invocation_directory()}}/build/$BAREBOXIMAGE ]; then
+            rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $REMOTE/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
+            notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-barebox-$HOSTNAME!"
+        fi
+        if [ -f {{invocation_directory()}}/build/$XLOADIMAGE ]; then
             rsync -avz {{invocation_directory()}}/build/$XLOADIMAGE $REMOTE/tftpboot/{{USER_DEST}}-xload-$HOSTNAME
             notify-send -i ~/cfg/x/bomber.png "Sent $REMOTE:{{USER_DEST}}-xload-$HOSTNAME!"
         fi
