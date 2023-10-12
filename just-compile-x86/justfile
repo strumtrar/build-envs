@@ -1,41 +1,23 @@
 IMAGE := "build-env-x86:latest"
 USER_SRC := `whoami`
 USER_DEST := "str"
+ARCH := env_var('ARCH')
+POD := env_var('PODMAN')
+PODFLAGS := env_var('PODMANFLAGS')
+PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
+HOOKS := "$PRJ_ROOT/justfiles/just-hooks"
+ROOT := env_var('PRJ_ROOT')
 
 alias b := build
 alias c := compile
 alias r := rsync
-alias t := test
-
-PROJ := `basename $(pwd)`
 
 cmd := 'bash -i'
 
 default: compile
 
 @build:
-    podman build -q -t {{IMAGE}} ~/work/build-envs/x86
-
-ps:
-    podman ps --all --storage
-
-_con:
-    labgrid-client con
-
-_lock:
-    #!/usr/bin/env bash
-    if [[ -n $LG_PLACE ]]; then
-        labgrid-client who | grep $LG_PLACE
-        if [ $? != 0 ]; then
-            labgrid-client lock
-        fi
-    fi
-
-_unlock:
-    labgrid-client unlock
-
-_pw +dir="on":
-    labgrid-client pw {{dir}}
+    {{POD}} build -q -t {{IMAGE}} {{ROOT}}/build-envs/x86
 
 _create-builddir:
     #!/usr/bin/env bash
@@ -50,12 +32,42 @@ _create-builddir:
         ln -sf $BUILDDIR build
     fi    
 
-@_connect *command=cmd: build _create-builddir
+_saveconfig: _create-builddir
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd $PWD
+    if [[ ! -e build ]]; then
+        exit 0
+    fi
+    if [[ ! -e build/.config ]]; then
+        exit 0
+    fi
+
+    HASH=$(echo $(git describe --always))
+    HASH=`echo $HASH | tr '[/]' '[_]'`
+
+    if [[ $PWD =~ .*kernel*. ]]; then
+        cp build/.config {{ROOT}}/config/kernelconfig-$HASH
+        cd {{ROOT}}
+        if [[ `git status --porcelain -- configs` ]]; then
+                git add configs
+                git commit -m "configs: update kernelconfig `date`"
+        fi
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        cp build/.config {{ROOT}}/config/bareboxconfig-$HASH
+        cd {{ROOT}}
+        if [[ `git status --porcelain -- configs` ]]; then
+            git add configs
+            git commit -m "configs: update bareboxconfig `date`"
+        fi
+    fi
+
+@_connect flags="--rm" *command=cmd: build _create-builddir
     cd {{invocation_directory()}} && \
-    podman run --rm -it --userns=keep-id \
+    {{POD}} run {{flags}} -it \
+    {{PODFLAGS}} \
     -e ARCH=$ARCH \
     --workdir /{{ PROJ }} \
-    --volume "~/repos:/repos \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
     {{IMAGE}} \
@@ -63,11 +75,45 @@ _create-builddir:
 
 @connect *command=cmd:
     cd {{invocation_directory()}} && \
-    just _connect {{command}}
+    just _connect --rm {{command}}
 
-@compile *parameters:
+@objdump *parameters:
     cd {{invocation_directory()}} && \
-    just connect make O=/build -j$(nproc) {{parameters}}
+    just connect ${CROSS_COMPILE}objdump -D {{parameters}}
+
+pre-compile-hook:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    if [[ $PWD =~ .*kernel*. ]]; then
+        just -f $PRJ_ROOT/justfiles/just-hooks pre-kernel 
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        just -f $PRJ_ROOT/justfiles/just-hooks pre-barebox
+    fi
+
+post-compile-hook:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    if [[ $PWD =~ .*kernel*. ]]; then
+        just -f {{HOOKS}} post-kernel
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        just -f {{HOOKS}} post-barebox
+    fi
+    
+post-rsync-hook:
+    just -f {{HOOKS}} post-rsync
+
+compile target="container" *parameters="": pre-compile-hook && _saveconfig post-compile-hook
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd $PWD
+    if [[ {{target}} =~ .*container*. ]]; then
+        just connect make O=/build -j$(nproc) {{parameters}}
+        just connect make O=/build -j$(nproc) compile_commands.json
+    else
+        ARCH={{ARCH}} make O=build -j$(nproc) {{parameters}}
+        ARCH={{ARCH}} make O=build -j$(nproc) compile_commands.json
+    fi
+    notify-send -i ~/cfg/x/builder.png "Compilation done"
 
 rsync: compile
     #!/usr/bin/env bash
@@ -78,7 +124,3 @@ rsync: compile
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
     fi
-
-test: rsync _lock _pw _con && (_pw "off") _unlock
-
-lg: _lock _pw _con && (_pw "off") _unlock
