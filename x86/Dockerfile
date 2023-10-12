@@ -1,8 +1,10 @@
-# debian-11-base
+# debian-12-base
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-FROM debian:11
+FROM debian:12.1-slim
+
+ENV TZ="Europe/Berlin"
 
 RUN apt-get clean && \
     apt-get update && \
@@ -11,14 +13,18 @@ RUN apt-get clean && \
         bison \
         build-essential \
         chrpath \
+	ccls \
+	chrpath \
         cpio \
+	clangd \
         flex \
         libelf-dev \
         libncurses5-dev \
+	libssl-dev \
         locales \
 	lz4 \
 	lzop \
-        python \
+	python-is-python3 \
         python3 \
         sudo \
         unzip \
