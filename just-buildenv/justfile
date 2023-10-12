@@ -16,3 +16,5 @@ build oselas:
 
     IMAGE="build-env-arm-multi:OSELAS.Toolchain-{{oselas}}"
     podman build -t $IMAGE --build-arg=TOOLCHAIN="$TOOLCHAIN" $PRJ_ROOT/build-envs/arm-multi
+    podman tag $IMAGE localhost:3333/str/$IMAGE
+    podman push --tls-verify=false localhost:3333/str/$IMAGE
