@@ -3,7 +3,7 @@
 
 ARG TOOLCHAIN_VERSION=2021.07
 
-FROM ghcr.io/strumtrar/build-env-arm-multi_oselas.toolchain-$TOOLCHAIN_VERSION
+FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION
 
 ARG PTXDIST_VERSION=2022.09.0
 
