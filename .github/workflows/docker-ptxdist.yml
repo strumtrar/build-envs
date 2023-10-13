@@ -29,13 +29,8 @@ jobs:
     strategy:
        fail-fast: false
        matrix:
-         include:
-           - ptxdist: 2023.08.0
-             toolchain: oselas.toolchain-2023.07
-           - ptxdist: 2023.07.0
-             toolchain: oselas.toolchain-2023.07
-           - ptxdist: 2023.06.0
-             toolchain: oselas.toolchain-2023.07
+         ptxdist: [ 2023.01.0 2023.02.0 2023.03.0 2023.04.0 2023.05.0 2023.06.0 2023.07.0 2023.08.0 ] 
+         toolchain: [ oselas.toolchain-2021.07 oselas.toolchain-2022.10 oselas.toolchain-2023.07 ]
     permissions:
       contents: read
       packages: write
