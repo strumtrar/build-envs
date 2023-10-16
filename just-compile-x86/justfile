@@ -1,4 +1,4 @@
-IMAGE := "build-env-x86:latest"
+IMAGE := "build-env-x86.debian.12.1-slim:latest"
 USER_SRC := `whoami`
 USER_DEST := "str"
 ARCH := env_var('ARCH')

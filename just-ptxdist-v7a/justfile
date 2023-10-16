@@ -1,7 +1,7 @@
 PTXDIST_VERSION := `grep CONFIGFILE_VERSION configs/ptxconfig | cut -d = -f2 | sed 's/"//g'`
 PTXDIST_PLATFORM := "configs" + "/platform-" + env_var('PLATFORM') + "/" + "platformconfig"
 TOOLCHAIN_VERSION := `grep CROSSCHAIN_VENDOR configs/platform-$PLATFORM/platformconfig | cut -d = -f2 | sed 's/"//g'`
-IMAGE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi:" + TOOLCHAIN_VERSION
+IMAGE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi.oselas.toolchain-" + TOOLCHAIN_VERSION
 
 alias b := build
 

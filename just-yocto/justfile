@@ -1,6 +1,6 @@
 USER_SRC := `whoami`
 USER_DEST := "str"
-IMAGE := "yocto-build-env:latest"
+IMAGE := "yocto-debian-12.1-slim-build-env:latest"
 MACHINE := `echo $MACHINE`
 BASEIMAGE := env_var('BASEIMAGE')
 DISTRO := env_var('DISTRO')
