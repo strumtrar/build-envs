@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-ARG BASEIMAGE=debian:12.1-slim
-FROM $BASEIMAGE
+ARG DISTRO=debian
+ARG BASEIMAGE=12.1-slim
+FROM $DISTRO:$BASEIMAGE
 
 ARG TOOLCHAIN=oselas.toolchain-2023.07.0-arm-v7a-linux-gnueabihf \
 	      oselas.toolchain-2023.07.0-aarch64-v8a-linux-gnu
