@@ -29,7 +29,8 @@ jobs:
     strategy:
        fail-fast: false
        matrix:
-         baseimage: [ debian:12.1-slim, debian:11.7-slim ]
+         distro: [ debian ]
+         baseimage: [ 12.1-slim, 11.7-slim ]
          include:
            - dockerfile: ./arm-multi/Dockerfile
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2021.07
@@ -84,7 +85,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
-          images: ${{ matrix.image }}.$${{ matrix.baseimage }}
+          images: ${{ matrix.image }}.${{matrix.distro}}.${{ matrix.baseimage }}
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -96,6 +97,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           build-args: |
             TOOLCHAIN=${{ matrix.toolchain }}
+            DISTRO=${{ matrix.distro }}
             BASEIMAGE=${{ matrix.baseimage }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
