@@ -1,8 +1,8 @@
 USER_SRC := `whoami`
 USER_DEST := "str"
-IMAGE := "yocto-debian-12.1-slim-build-env:latest"
-MACHINE := `echo $MACHINE`
 BASEIMAGE := env_var('BASEIMAGE')
+IMAGE := "yocto-" + BASEIMAGE + "-build-env:latest"
+MACHINE := `echo $MACHINE`
 DISTRO := env_var('DISTRO')
 ROOT := env_var('PRJ_ROOT')
 alias b := build
@@ -10,13 +10,16 @@ alias c := compile-bsp
 
 cmd := 'bash -i'
 
+@pull:
+    podman pull {{IMAGE}}
+
 @build:
     podman build -q -t {{IMAGE}} --build-arg BASEIMAGE={{BASEIMAGE}} {{ROOT}}/build-envs/yocto-build-env
 
 ps:
     podman ps --all --storage
 
-_connect machine *command=cmd: build
+_connect machine *command=cmd: pull
     cd {{invocation_directory()}} && \
     podman run -it --rm --userns=keep-id \
     -e MACHINE={{machine}} \

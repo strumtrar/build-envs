@@ -1,4 +1,5 @@
-IMAGE := "build-env-x86.debian.12.1-slim:latest"
+CACHE := "build-env-x86.debian.12.1-slim"
+TAG := "latest"
 USER_SRC := `whoami`
 USER_DEST := "str"
 ARCH := env_var('ARCH')
@@ -16,8 +17,11 @@ cmd := 'bash -i'
 
 default: compile
 
-@build:
-    {{POD}} build -q -t {{IMAGE}} {{ROOT}}/build-envs/x86
+@pull:
+    {{POD}} pull ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
+
+build:
+    {{POD}} build -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/x86
 
 _create-builddir:
     #!/usr/bin/env bash
@@ -62,7 +66,7 @@ _saveconfig: _create-builddir
         fi
     fi
 
-@_connect flags="--rm" *command=cmd: build _create-builddir
+@_connect flags="--rm" *command=cmd: pull _create-builddir
     cd {{invocation_directory()}} && \
     {{POD}} run {{flags}} -it \
     {{PODFLAGS}} \
@@ -70,7 +74,7 @@ _saveconfig: _create-builddir
     --workdir /{{ PROJ }} \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
-    {{IMAGE}} \
+    {{CACHE}}:{{TAG}} \
     {{command}}
 
 @connect *command=cmd:
