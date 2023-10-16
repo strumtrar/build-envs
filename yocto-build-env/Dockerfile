@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-ARG BASEIMAGE=debian:12.1-slim
-FROM $BASEIMAGE
+ARG DISTRO=debian
+ARG BASEIMAGE=12.1-slim
+FROM $DISTRO:$BASEIMAGE
 
 RUN apt-get clean && \
     apt-get update && \
