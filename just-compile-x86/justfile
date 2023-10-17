@@ -7,6 +7,7 @@ POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
 PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
 HOOKS := "$PRJ_ROOT/justfiles/just-hooks"
+CONFIG := "$PRJ_ROOT/justfiles/just-config"
 ROOT := env_var('PRJ_ROOT')
 
 alias b := build
@@ -23,50 +24,19 @@ default: compile
 build:
     {{POD}} build -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/x86
 
-_create-builddir:
+config-hook:
     #!/usr/bin/env bash
+    set -x
     PWD="{{invocation_directory()}}"
-    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
-    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
-    cd $PWD
-    if [ ! -L build ]; then
-        echo "Creating $BUILDDIR"
-        mkdir -p $BUILDDIR
-        echo "Creating $BUILDDIR link"
-        ln -sf $BUILDDIR build
-    fi    
+    just -f {{CONFIG}} _saveconfig 
 
-_saveconfig: _create-builddir
+builddir-hook:
     #!/usr/bin/env bash
+    set -x
     PWD="{{invocation_directory()}}"
-    cd $PWD
-    if [[ ! -e build ]]; then
-        exit 0
-    fi
-    if [[ ! -e build/.config ]]; then
-        exit 0
-    fi
+    just -f {{CONFIG}} _create-builddir 
 
-    HASH=$(echo $(git describe --always))
-    HASH=`echo $HASH | tr '[/]' '[_]'`
-
-    if [[ $PWD =~ .*kernel*. ]]; then
-        cp build/.config {{ROOT}}/config/kernelconfig-$HASH
-        cd {{ROOT}}
-        if [[ `git status --porcelain -- configs` ]]; then
-                git add configs
-                git commit -m "configs: update kernelconfig `date`"
-        fi
-    elif [[ $PWD =~ .*barebox*. ]]; then
-        cp build/.config {{ROOT}}/config/bareboxconfig-$HASH
-        cd {{ROOT}}
-        if [[ `git status --porcelain -- configs` ]]; then
-            git add configs
-            git commit -m "configs: update bareboxconfig `date`"
-        fi
-    fi
-
-@_connect flags="--rm" *command=cmd: pull _create-builddir
+@_connect flags="--rm" *command=cmd: pull builddir-hook
     cd {{invocation_directory()}} && \
     {{POD}} run {{flags}} -it \
     {{PODFLAGS}} \
@@ -106,7 +76,7 @@ post-compile-hook:
 post-rsync-hook:
     just -f {{HOOKS}} post-rsync
 
-compile target="container" *parameters="": pre-compile-hook && _saveconfig post-compile-hook
+compile target="container" *parameters="": pre-compile-hook && config-hook post-compile-hook
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     cd $PWD
@@ -124,7 +94,7 @@ rsync: compile
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/home/str/work/customers/ptx/DistroKit/platform-x86_64/root/root/{{USER_DEST}}-linux-$HOSTNAME
-        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-x86-com-e
+        rsync -avz {{invocation_directory()}}/build/$KERNELIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-linux-$HOSTNAME
     elif [[ $PWD =~ .*barebox*. ]]; then
         rsync -avz {{invocation_directory()}}/build/$BAREBOXIMAGE $LG_PROXY:/tftpboot/{{USER_DEST}}-barebox-$HOSTNAME
     fi
