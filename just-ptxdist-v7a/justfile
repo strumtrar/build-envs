@@ -1,7 +1,10 @@
 PTXDIST_VERSION := `grep CONFIGFILE_VERSION configs/ptxconfig | cut -d = -f2 | sed 's/"//g'`
 PTXDIST_PLATFORM := "configs" + "/platform-" + env_var('PLATFORM') + "/" + "platformconfig"
-TOOLCHAIN_VERSION := `grep CROSSCHAIN_VENDOR configs/platform-$PLATFORM/platformconfig | cut -d = -f2 | sed 's/"//g'`
-IMAGE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi.oselas.toolchain-" + TOOLCHAIN_VERSION
+TOOLCHAIN_VERSION := `grep CROSSCHAIN_VENDOR configs/platform-$PLATFORM/platformconfig | cut -d = -f2 | sed 's/"//g' | tr '[:upper:]' '[:lower:]'`
+CACHE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi." + TOOLCHAIN_VERSION
+TAG := "latest"
+POD := env_var('PODMAN')
+PODFLAGS := env_var('PODMANFLAGS')
 
 alias b := build
 
@@ -19,10 +22,10 @@ platform:
     echo $PLATFORM
 
 @pull:
-    podman pull {{IMAGE}}
+    {{POD}} pull ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
 
 @build:
-    podman build -q -t {{IMAGE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} $PRJ_ROOT/build-envs/ptxdist-build-env
+    podman build -q -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --cache-from ghcr.io/strumtrar/{{CACHE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} $PRJ_ROOT/build-envs/ptxdist-build-env
 
 @connect *command=cmd: pull
     cd {{invocation_directory()}} && \
@@ -31,7 +34,7 @@ platform:
     --volume "$(pwd)":/bsp \
     --volume ~/work/ptxdist/src:/bsp/src \
     --network=host \
-    {{IMAGE}} \
+    {{CACHE}}:{{TAG}} \
     {{command}}
 
 ptxdist *parameters:
