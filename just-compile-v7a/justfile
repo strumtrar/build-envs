@@ -13,6 +13,7 @@ POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
 PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
 HOOKS := "$PRJ_ROOT/justfiles/just-hooks"
+CONFIG := "$PRJ_ROOT/justfiles/just-config"
 
 alias b := build
 alias c := compile
