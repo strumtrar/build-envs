@@ -1,0 +1,40 @@
+default: lg
+
+@_con:
+    #!/usr/bin/env bash
+
+    HASH=$(echo $(git describe --always))
+    HASH=`echo $HASH | tr '[/]' '[_]'`
+
+    labgrid-client con $CONSOLE --logfile $PRJ_ROOT/logs/$HASH.log
+
+_lock:
+    #!/usr/bin/env bash
+    if [[ -n $LG_PLACE ]]; then
+        labgrid-client who | grep $LG_PLACE
+        if [ $? != 0 ]; then
+            labgrid-client lock
+        fi
+    fi
+
+@_unlock:
+    #!/usr/bin/env bash
+
+    HASH=$(echo $(git describe --always))
+    HASH=`echo $HASH | tr '[/]' '[_]'`
+
+    labgrid-client unlock
+
+@_pw +dir="on":
+    labgrid-client pw {{dir}}
+
+p:
+    labgrid-client pw cycle
+
+lg: _lock _pw _con && (_pw "off") _unlock
+
+test +args: _lock && _unlock
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd $PWD
+    pytest --lg-env=$MACHINE.yaml --lg-log=log/$HOSTNAME --lg-colored-steps -vv --color=yes --tb=line {{args}}

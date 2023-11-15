@@ -12,8 +12,8 @@ ROOT := env_var('PRJ_ROOT')
 POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
 PROJ := `if [[ -e .kernel ]]; then echo kernel; else echo barebox; fi`
-HOOKS := "$PRJ_ROOT/justfiles/just-hooks"
-CONFIG := "$PRJ_ROOT/justfiles/just-config"
+CONFIG := "$PRJ_ROOT/build-env/just-common/just-config"
+HOOKS := "$PRJ_ROOT/build-env/just-common/just-hooks"
 
 alias b := build
 alias c := compile
@@ -21,7 +21,8 @@ alias r := rsync
 
 cmd := 'bash -i'
 
-default: compile
+default: 
+    @just --choose
 
 @pull:
     {{POD}} pull ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
@@ -30,15 +31,11 @@ default: compile
     {{POD}} build -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN={{TOOLCHAIN}} --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/arm-multi
 
 config-hook:
-    #!/usr/bin/env bash
-    set -x
-    PWD="{{invocation_directory()}}"
+    cd {{invocation_directory()}} && \
     just -f {{CONFIG}} _saveconfig 
 
 builddir-hook:
-    #!/usr/bin/env bash
-    set -x
-    PWD="{{invocation_directory()}}"
+    cd {{invocation_directory()}} && \
     just -f {{CONFIG}} _create-builddir 
 
 @_connect flags="--rm" *command=cmd: build builddir-hook

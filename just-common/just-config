@@ -1,0 +1,55 @@
+USER_SRC := `whoami`
+ROOT := env_var('PRJ_ROOT')
+
+[no-cd]
+_create-builddir:
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    BRANCH=`cd $PWD && git symbolic-ref --short HEAD`
+    if [[ $BRANCH == "" ]]; then
+      echo "Please checkout a working branch first"
+      exit 1
+    fi
+    BUILDDIR="/home/{{USER_SRC}}/work/build/$BRANCH"
+    cd $PWD
+    if [ ! -L build ]; then
+        echo "Creating $BUILDDIR"
+        mkdir -p $BUILDDIR
+        echo "Creating $BUILDDIR link"
+        ln -sf $BUILDDIR build
+    fi
+
+[no-cd]
+_saveconfig: _create-builddir
+    #!/usr/bin/env bash
+    PWD="{{invocation_directory()}}"
+    cd $PWD
+    if [[ ! -e build ]]; then
+        exit 0
+    fi
+    if [[ ! -e build/.config ]]; then
+        exit 0
+    fi
+
+    BRANCH=`git symbolic-ref --short HEAD`
+    HASH=`git rev-parse --short=12 HEAD`
+    HASH=`echo $HASH | tr '[/]' '[_]'`
+    BRANCH=`echo $BRANCH | tr '[/]' '[_]'`
+
+    if [[ $PWD =~ .*kernel*. ]]; then
+        cp build/.config {{ROOT}}/configs/kernelconfig_${BRANCH}_${HASH}
+        cd {{ROOT}}/configs
+        if [[ `git status --porcelain` ]]; then
+                git add .
+                git commit -m "configs: $HOSTNAME: update kernelconfig `date`"
+                git push origin master
+        fi
+    elif [[ $PWD =~ .*barebox*. ]]; then
+        cp build/.config {{ROOT}}/configs/bareboxconfig_${BRANCH}_${HASH}
+        cd {{ROOT}}/configs
+        if [[ `git status --porcelain` ]]; then
+            git add .
+            git commit -m "configs: $HOSTNAME: update bareboxconfig `date`"
+            git push origin master
+        fi
+    fi
