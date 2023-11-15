@@ -30,6 +30,9 @@ _saveconfig: _create-builddir
     if [[ ! -e build/.config ]]; then
         exit 0
     fi
+    if [[ ! -e {{ROOT}}/configs ]]; then
+        exit 0
+    fi
 
     BRANCH=`git symbolic-ref --short HEAD`
     HASH=`git rev-parse --short=12 HEAD`
@@ -42,6 +45,7 @@ _saveconfig: _create-builddir
         if [[ `git status --porcelain` ]]; then
                 git add .
                 git commit -m "configs: $HOSTNAME: update kernelconfig `date`"
+                git pull --rebase origin master
                 git push origin master
         fi
     elif [[ $PWD =~ .*barebox*. ]]; then
@@ -50,6 +54,7 @@ _saveconfig: _create-builddir
         if [[ `git status --porcelain` ]]; then
             git add .
             git commit -m "configs: $HOSTNAME: update bareboxconfig `date`"
+            git pull --rebase origin master
             git push origin master
         fi
     fi
