@@ -29,10 +29,10 @@ default:
 @build:
     {{POD}} build -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN={{TOOLCHAIN}} --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/arm-multi
 
-config-hook:
+@config-hook:
     just -f {{CONFIG}} _saveconfig 
 
-builddir-hook:
+@builddir-hook:
     just -f {{CONFIG}} _create-builddir 
 
 @_connect flags="--rm" *command=cmd: pull builddir-hook
@@ -65,7 +65,7 @@ pre-compile-hook:
         just -f {{HOOKS}} pre-barebox
     fi
 
-@post-compile-hook:
+post-compile-hook:
     #!/usr/bin/env bash
     PWD="{{invocation_directory()}}"
     if [[ $PWD =~ .*kernel*. ]]; then
