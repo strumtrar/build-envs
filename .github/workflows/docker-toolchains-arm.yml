@@ -1,4 +1,4 @@
-name: OSELAS.Toolchain Environment
+name: OSELAS.Toolchain ARM32/64 Environment
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -30,15 +30,17 @@ jobs:
        fail-fast: false
        matrix:
          distro: [ debian ]
+         dockerfile: [ "./arm-multi/Dockerfile" ]
+         toolchain_version: [ 2021.07, 2022.10, 2023.07 ] 
          baseimage: [ 12.2-slim, 12.1-slim, 11.8-slim, 11.7-slim ]
          include:
-           - dockerfile: ./arm-multi/Dockerfile
+           - toolchain_version: "2021.07"
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2021.07
              toolchain: "oselas.toolchain-2021.07-arm-v7a-linux-gnueabihf oselas.toolchain-2021.07-aarch64-v8a-linux-gnu"
-           - dockerfile: ./arm-multi/Dockerfile
+           - toolchain_version: "2022.10"
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2022.10
              toolchain: "oselas.toolchain-2022.10-arm-v7a-linux-gnueabihf oselas.toolchain-2022.10-aarch64-v8a-linux-gnu"
-           - dockerfile: ./arm-multi/Dockerfile
+           - toolchain_version: "2023.07"
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2023.07
              toolchain: "oselas.toolchain-2023.07-arm-v7a-linux-gnueabihf oselas.toolchain-2023.07-aarch64-v8a-linux-gnu"
     permissions:
