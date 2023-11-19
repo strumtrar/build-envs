@@ -2,11 +2,9 @@ TAG := "latest"
 USER_SRC := `whoami`
 USER_DEST := "str"
 ARCH := env_var('ARCH')
-CROSS_COMPILE := env_var('CROSS_COMPILE')
+CROSS_COMPILE := env_var_or_default('CROSS_COMPILE', "")
 CUSTOMER := env_var('CUSTOMER')
-TOOLCHAIN := env_var('TOOLCHAIN')
-TOOLCHAIN_VERSION := `echo $TOOLCHAIN | cut -d- -f2 | cut -d. -f1,2`
-CACHE := "build-env-arm-multi." + "oselas.toolchain-" + TOOLCHAIN_VERSION
+PODMAN_CACHE := env_var('PODMAN_CACHE')
 ROOT := env_var('PRJ_ROOT')
 POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
@@ -28,10 +26,10 @@ default:
 ###
 
 @pull:
-    {{POD}} pull -q ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
+    {{POD}} pull -q ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}}
 
 @build:
-    {{POD}} build -q -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN={{TOOLCHAIN}} --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/arm-multi
+    {{POD}} build -q -t ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN=$TOOLCHAIN --cache-from ghcr.io/strumtrar/{{PODMAN_CACHE}} {{ROOT}}/build-envs/arm-multi
 
 ###
 ### Hooks
@@ -75,7 +73,7 @@ post-compile-hook:
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
     --net=host \
-    {{CACHE}}:{{TAG}} \
+    {{PODMAN_CACHE}}:{{TAG}} \
     {{command}}
 
 @connect *command=cmd:
