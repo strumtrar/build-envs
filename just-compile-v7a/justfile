@@ -35,7 +35,7 @@ default:
 @builddir-hook:
     just -f {{CONFIG}} _create-builddir 
 
-@_connect flags="--rm" *command=cmd: pull builddir-hook
+@_connect flags="--rm" *command=cmd: build builddir-hook
     cd {{invocation_directory()}} && \
     {{POD}} run {{flags}} -it \
     {{PODFLAGS}} \
