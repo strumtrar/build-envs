@@ -30,7 +30,7 @@ jobs:
        fail-fast: false
        matrix:
          distro: [ debian ]
-         baseimage: [ 12.1-slim, 11.7-slim ]
+         baseimage: [ 12.2-slim, 12.1-slim, 11.8-slim, 11.7-slim ]
          include:
            - dockerfile: ./arm-multi/Dockerfile
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2021.07
