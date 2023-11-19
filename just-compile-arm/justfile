@@ -67,8 +67,8 @@ post-compile-hook:
     cd {{invocation_directory()}} && \
     {{POD}} run {{flags}} -it \
     {{PODFLAGS}} \
-    -e ARCH=$ARCH \
-    -e CROSS_COMPILE=$CROSS_COMPILE \
+    -e ARCH={{ARCH}} \
+    -e CROSS_COMPILE={{CROSS_COMPILE}} \
     --workdir /{{ PROJ }} \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
