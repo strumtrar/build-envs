@@ -1,4 +1,4 @@
-TAG := "latest"
+TAG := env_var('BASEIMAGE')
 USER_SRC := `whoami`
 USER_DEST := "str"
 ARCH := env_var('ARCH')
@@ -29,7 +29,7 @@ default:
     {{POD}} pull -q ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}}
 
 @build:
-    {{POD}} build -q -t ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN=$TOOLCHAIN --cache-from ghcr.io/strumtrar/{{PODMAN_CACHE}} {{ROOT}}/build-envs/$DOCKERFILES
+    {{POD}} build -t ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN=$TOOLCHAIN --build-arg=BASEIMAGE=$BASEIMAGE --cache-from ghcr.io/strumtrar/{{PODMAN_CACHE}} $BUILDENV/$DOCKERFILES
 
 ###
 ### Hooks
