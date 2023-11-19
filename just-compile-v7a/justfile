@@ -27,7 +27,7 @@ default:
     {{POD}} pull -q ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
 
 @build:
-    {{POD}} build -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN={{TOOLCHAIN}} --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/arm-multi
+    {{POD}} build -q -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --build-arg=TOOLCHAIN={{TOOLCHAIN}} --cache-from ghcr.io/strumtrar/{{CACHE}} {{ROOT}}/build-envs/arm-multi
 
 @config-hook:
     just -f {{CONFIG}} _saveconfig 
