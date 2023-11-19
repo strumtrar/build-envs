@@ -89,19 +89,18 @@ compile target="container" *parameters="": pre-compile-hook && config-hook post-
     PWD="{{invocation_directory()}}"
     cd $PWD
     if [[ {{target}} =~ .*container*. ]]; then
-        just connect make O=/build -j$(nproc) {{parameters}} && \
-                     make O=/build -j$(nproc) compile_commands.json
+        just connect make O=/build -j$(nproc) {{parameters}}
+        just connect make O=/build -j$(nproc) compile_commands.json
     else
-        ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} \
-                make O=build -j$(nproc) {{parameters}} && \
-                make O=build -j$(nproc) compile_commands.json
+        ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} make O=build -j$(nproc) {{parameters}}
+        ARCH={{ARCH}} CROSS_COMPILE={{CROSS_COMPILE}} make O=build -j$(nproc) compile_commands.json
     fi
     notify-send -i ~/cfg/x/builder.png "Compilation done"
 
 @dtcheck *parameters:
     cd {{invocation_directory()}} && \
-    just connect make O=/build -j$(nproc) dt_binding_check DT_SCHEMA_FILES={{parameters}} && \
-                 make O=/build -j$(nproc) dtbs_check DT_SCHEMA_FILES={{parameters}}
+    just connect make O=/build -j$(nproc) dt_binding_check DT_SCHEMA_FILES={{parameters}}
+    just connect make O=/build -j$(nproc) dtbs_check DT_SCHEMA_FILES={{parameters}}
 
 rsync: compile && post-rsync-hook
     #!/usr/bin/env bash
