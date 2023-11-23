@@ -5,13 +5,14 @@ default: lg
 
     HASH=$(echo $(git describe --always))
     HASH=`echo $HASH | tr '[/]' '[_]'`
+    DATE=`date +%Y_%h_%d_%H_%m`
 
-    labgrid-client con $CONSOLE --logfile $PRJ_ROOT/logs/$HASH.log
+    labgrid-client con $CONSOLE --logfile $PRJ_ROOT/logs/$HASH_$DATE.log
 
 _lock:
     #!/usr/bin/env bash
     if [[ -n $LG_PLACE ]]; then
-        labgrid-client who | grep $LG_PLACE
+        labgrid-client who | grep " $LG_PLACE "
         if [ $? != 0 ]; then
             labgrid-client lock
         fi
