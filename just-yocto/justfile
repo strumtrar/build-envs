@@ -1,23 +1,24 @@
 USER_SRC := `whoami`
 USER_DEST := "str"
 BASEIMAGE := env_var('BASEIMAGE')
-IMAGE := "yocto-" + BASEIMAGE + "-build-env:latest"
+CACHE := "yocto-debian-" + BASEIMAGE + "-build-env"
+TAG := "latest"
 MACHINE := `echo $MACHINE`
 DISTRO := env_var('DISTRO')
 ROOT := env_var('PRJ_ROOT')
+POD := env_var('PODMAN')
+PODFLAGS := env_var('PODMANFLAGS')
+
 alias b := build
 alias c := compile-bsp
 
 cmd := 'bash -i'
 
 @pull:
-    podman pull {{IMAGE}}
+    {{POD}} pull ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
 
 @build:
-    podman build -q -t {{IMAGE}} --build-arg BASEIMAGE={{BASEIMAGE}} {{ROOT}}/build-envs/yocto-build-env
-
-ps:
-    podman ps --all --storage
+    {{POD}} build -q -t ghcr.io/strumtrar/{{CACHE}}:{{TAG}} --layers --cache-from ghcr.io/strumtrar/{{CACHE}} $PRJ_ROOT/build-envs/yocto-build-env
 
 _connect machine *command=cmd: pull
     cd {{invocation_directory()}} && \
@@ -30,7 +31,7 @@ _connect machine *command=cmd: pull
     --volume ~/repos:/repos \
     --volume ~/work/yocto/dl-dir:/bsp/build/downloads \
     --volume ~/work/yocto/sstate-cache:/bsp/build/sstate-cache \
-    {{IMAGE}} \
+    {{CACHE}}:{{TAG}} \
     {{command}}
 
 _init_build_script:
