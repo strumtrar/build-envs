@@ -9,7 +9,7 @@ default: lg
 
     labgrid-client con $CONSOLE --logfile $PRJ_ROOT/logs/$HASH_$DATE.log
 
-_lock:
+@_lock:
     #!/usr/bin/env bash
     if [[ -n $LG_PLACE ]]; then
         labgrid-client who | grep " $LG_PLACE "
