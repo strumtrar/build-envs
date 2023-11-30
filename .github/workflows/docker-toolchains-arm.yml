@@ -42,6 +42,10 @@ jobs:
              baseimage: 11.8-slim
            - toolchain_version: "2022.10"
              baseimage: 11.7-slim
+           - toolchain_version: "2023.07"
+             baseimage: 11.8-slim
+           - toolchain_version: "2023.07"
+             baseimage: 11.7-slim
          include:
            - toolchain_version: "2021.07"
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2021.07
