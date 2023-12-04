@@ -22,7 +22,7 @@ cmd := 'bash -i'
 
 _connect machine *command=cmd: pull
     cd {{invocation_directory()}} && \
-    podman run -it --rm --userns=keep-id \
+    {{POD}} run -it --rm --userns=keep-id \
     -e MACHINE={{machine}} \
     -e DISTRO={{DISTRO}} \
     --network host \
