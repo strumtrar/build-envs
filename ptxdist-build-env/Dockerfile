@@ -2,8 +2,9 @@
 #
 
 ARG TOOLCHAIN_VERSION=2021.07
+ARG BASEIMAGE=debian.12.2-slim
 
-FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION
+FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE
 
 ARG PTXDIST_VERSION=2022.09.0
 
