@@ -69,6 +69,7 @@ post-compile-hook:
     {{PODFLAGS}} \
     -e ARCH={{ARCH}} \
     -e CROSS_COMPILE={{CROSS_COMPILE}} \
+    -e CC=clang \
     --workdir /{{ PROJ }} \
     --volume "$(pwd)"/build:/build \
     --volume "$(pwd)":/{{ PROJ }} \
