@@ -32,7 +32,7 @@ platform:
     {{POD}} run --rm -it --userns=keep-id \
     --workdir /bsp \
     --volume "$(pwd)":/bsp \
-    --volume ~/work/ptxdist/src:/bsp/src \
+    --volume ~/work/ptxdist/src:/ptx/src \
     --network=host \
     {{CACHE}}:{{TAG}} \
     {{command}}
