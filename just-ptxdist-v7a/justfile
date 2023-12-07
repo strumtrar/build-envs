@@ -1,10 +1,12 @@
 PTXDIST_VERSION := `grep CONFIGFILE_VERSION configs/ptxconfig | cut -d = -f2 | sed 's/"//g'`
 PTXDIST_PLATFORM := "configs" + "/platform-" + env_var('PLATFORM') + "/" + "platformconfig"
 TOOLCHAIN_VERSION := `grep CROSSCHAIN_VENDOR configs/platform-$PLATFORM/platformconfig | cut -d = -f2 | sed 's/"//g' | tr '[:upper:]' '[:lower:]'`
+BASEIMAGE := env_var('BASEIMAGE')
 CACHE := "ptxdist-" + PTXDIST_VERSION + "-build-env-arm-multi." + TOOLCHAIN_VERSION
 TAG := "latest"
 POD := env_var('PODMAN')
 PODFLAGS := env_var('PODMANFLAGS')
+PODMAN_CACHE := env_var('PODMAN_CACHE')
 
 alias b := build
 
@@ -22,10 +24,10 @@ platform:
     echo $PLATFORM
 
 @pull:
-    {{POD}} pull -q ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}}
+    {{POD}} pull ghcr.io/strumtrar/{{CACHE}}:{{TAG}}
 
 @build:
-    {{POD}} build -q -t ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}} --layers --cache-from ghcr.io/strumtrar/{{PODMAN_CACHE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} $BUILDENV/$DOCKERFILES
+    {{POD}} build -t ghcr.io/strumtrar/{{PODMAN_CACHE}}:{{TAG}} --layers --cache-from ghcr.io/strumtrar/{{PODMAN_CACHE}} --build-arg=PTXDIST_VERSION={{PTXDIST_VERSION}} --build-arg=TOOLCHAIN_VERSION={{TOOLCHAIN_VERSION}} $BUILDENV/$DOCKERFILES
 
 @connect *command=cmd: pull
     cd {{invocation_directory()}} && \
@@ -34,7 +36,7 @@ platform:
     --volume "$(pwd)":/bsp \
     --volume ~/work/ptxdist/src:/ptx/src \
     --network=host \
-    {{PODMAN_CACHE}}:{{TAG}} \
+    {{CACHE}}:{{TAG}} \
     {{command}}
 
 ptxdist *parameters:
