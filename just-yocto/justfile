@@ -44,7 +44,7 @@ _init_build_script:
     fi
     if [ ! -f $BUILD_SCRIPT ]; then
         echo "#!/bin/bash" > $BUILD_SCRIPT
-        echo ". ./oe-init-build-env build" >> $BUILD_SCRIPT
+        echo ". ./oe-init-build-env \$BB_BUILDENV" >> $BUILD_SCRIPT
         echo "bitbake \$@" >> $BUILD_SCRIPT
         chmod +x $BUILD_SCRIPT
         if [ ! -d build/conf ]; then
