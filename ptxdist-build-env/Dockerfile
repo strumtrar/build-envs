@@ -24,6 +24,7 @@ RUN apt-get clean && \
         libdbus-1-dev \
         libffi-dev \
         libglib2.0-dev \
+        libpcap-dev \
         libusb-dev \
 	make \
 	man \
