@@ -20,6 +20,7 @@ RUN apt-get clean && \
         dialog \
         groff-base \
         icecc \
+	icecream-sundae \
         libc6-dev \
         libdbus-1-dev \
         libffi-dev \
