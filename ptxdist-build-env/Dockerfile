@@ -4,8 +4,10 @@
 ARG TOOLCHAIN_VERSION=2021.07
 ARG BASEIMAGE=debian.12.2-slim
 
-FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE
+FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.debian.$BASEIMAGE
 
+ARG USERID=1000
+ARG GROUPID=1000
 ARG PTXDIST_VERSION=2022.09.0
 
 RUN apt-get clean && \
@@ -34,7 +36,6 @@ RUN apt-get clean && \
 	python3-dev \
 	python3-jinja2 \
 	python3-setuptools \
-	python3-venv \
 	flex \
 	bison \
 	gawk \
@@ -62,5 +63,17 @@ RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION
      git config --global user.name "Your name"
 
 ENV PATH="${PATH}:/opt/ptxdist/bin"
+
+RUN apt-get clean
+
+RUN echo $GROUPID
+
+RUN groupadd -g $GROUPID -o user
+
+RUN useradd -u $USERID -m -g user -G plugdev user \
+	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
+	&& chmod 0440 /etc/sudoers.d/user
+
+USER user
 
 CMD /bin/bash
