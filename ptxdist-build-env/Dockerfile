@@ -4,7 +4,7 @@
 ARG TOOLCHAIN_VERSION=2021.07
 ARG BASEIMAGE=debian.12.2-slim
 
-FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.debian.$BASEIMAGE
+FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE
 
 ARG USERID=1000
 ARG GROUPID=1000
