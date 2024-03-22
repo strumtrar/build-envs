@@ -42,4 +42,12 @@ RUN apt-get clean && \
 
 RUN  apt-get clean
 
+RUN groupadd -g $GROUPID -o user
+
+RUN useradd -u $USERID -m -g user -G plugdev user \
+	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
+	&& chmod 0440 /etc/sudoers.d/user
+
+USER user
+
 CMD /bin/bash

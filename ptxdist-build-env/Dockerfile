@@ -36,6 +36,7 @@ RUN apt-get clean && \
 	python3-dev \
 	python3-jinja2 \
 	python3-setuptools \
+	python3.11-venv \
 	flex \
 	bison \
 	gawk \
@@ -65,8 +66,6 @@ RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION
 ENV PATH="${PATH}:/opt/ptxdist/bin"
 
 RUN apt-get clean
-
-RUN echo $GROUPID
 
 RUN groupadd -g $GROUPID -o user
 
