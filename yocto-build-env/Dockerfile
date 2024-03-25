@@ -9,7 +9,7 @@ ARG BASEIMAGE=12.1-slim
 FROM $DISTRO:$BASEIMAGE
 
 ARG USERID=1000
-ARG GROUPID=1000
+ARG GROUPID=100
 
 RUN apt-get clean && \
     apt-get update && \

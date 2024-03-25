@@ -7,7 +7,7 @@ ARG BASEIMAGE=debian.12.2-slim
 FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE
 
 ARG USERID=1000
-ARG GROUPID=1000
+ARG GROUPID=100
 ARG PTXDIST_VERSION=2022.09.0
 
 RUN apt-get clean && \
