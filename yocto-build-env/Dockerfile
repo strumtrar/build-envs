@@ -45,6 +45,8 @@ RUN apt-get clean && \
 
 RUN  apt-get clean
 
+RUN chmod 777 /root
+
 RUN groupadd -g $GROUPID -o user
 
 RUN useradd -u $USERID -m -g user -G plugdev user \
