@@ -41,7 +41,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         locales \
 	lz4 \
 	lzop \
-	libusb1-dev \
+	libusb-1.0.0-dev \
 	pkg-config \
 	python-is-python3 \
         python3 \
