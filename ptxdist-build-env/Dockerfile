@@ -20,6 +20,7 @@ RUN apt-get clean && \
         cpio \
         cmake \
         dialog \
+	dos2unix \
         groff-base \
         icecc \
 	icecream-sundae \
