@@ -32,21 +32,24 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ccls \
         chrpath \
         cpio \
+        clang \
         clangd \
         flex \
         git-core \
 	icecc \
+	icecream-sundae \
         libncurses5-dev \
         libssl-dev \
+	lld \
+	llvm \
         locales \
 	lz4 \
 	lzop \
 	libusb-1.0.0-dev \
 	pkg-config \
 	python-is-python3 \
-        python3 \
+        python3-full \
         python3-dev \
-        python3-pip \
         screen \
         swig \
         sudo \
@@ -57,6 +60,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
-#RUN pip3 install dtschema
+RUN python3 -m venv venv 
+RUN venv/bin/pip install wheel
+RUN venv/bin/pip install dtschema
+
+ENV PATH="${PATH}:${PWD}/venv/bin"
 
 RUN apt-get clean
