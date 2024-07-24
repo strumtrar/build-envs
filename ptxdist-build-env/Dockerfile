@@ -74,6 +74,8 @@ RUN useradd -u $USERID -m -g user -G plugdev user \
 	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
 	&& chmod 0440 /etc/sudoers.d/user
 
+RUN sudo touch /root/.netrc
+
 USER user
 
 CMD /bin/bash
