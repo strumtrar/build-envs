@@ -74,10 +74,4 @@ RUN useradd -u $USERID -m -g user -G plugdev user \
 	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
 	&& chmod 0440 /etc/sudoers.d/user
 
-# HACK: workaround woodpecker hard-coded /root/.netrc access
-RUN sudo touch /root/.netrc
-RUN sudo chmod 777 /root/.netrc
-
-USER user
-
 CMD /bin/bash
