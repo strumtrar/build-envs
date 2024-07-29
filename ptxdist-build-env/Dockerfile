@@ -35,6 +35,7 @@ RUN apt-get clean && \
         net-tools \
 	python3 \
 	python3-dev \
+	python3-mako \
 	python3-jinja2 \
 	python3-setuptools \
 	python3.11-venv \
