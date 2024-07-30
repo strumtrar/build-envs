@@ -17,20 +17,32 @@ RUN apt-get clean && \
         build-essential \
         chrpath \
         cpio \
+	debianutils \
         diffstat \
         file \
         gawk \
+	gcc \
         git-core \
+	iputils-ping \
 	kmod \
         locales \
 	libtinfo5 \
+	libegl1-mesa \
+	libsdl1.2-dev \
 	lz4 \
+	mesa-common-dev \
         mtools \
         parted \
         pkg-config \
         procps \
+	pylint3 \
         python3 \
+        python3-jinja2 \
+        python3-git \
+        python3-pip \
+        python3-pexpect \
         python3-distutils \
+	python3-subunit \
         screen \
         socat \
         sudo \
@@ -40,6 +52,7 @@ RUN apt-get clean && \
         unzip \
         wget \
         xz-utils \
+        xterm \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
