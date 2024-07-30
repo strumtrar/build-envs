@@ -14,6 +14,7 @@ ARG GROUPID=100
 RUN apt-get clean && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
+      bash \
       build-essential \
       chrpath \
       cpio \
@@ -29,13 +30,14 @@ RUN apt-get clean && \
       libtinfo5 \
       libegl1-mesa \
       libsdl1.2-dev \
+      libncursesw5 \
       lz4 \
+      lzop \
       mesa-common-dev \
       mtools \
       parted \
       pkg-config \
       procps \
-      pylint3 \
       python3 \
       python3-jinja2 \
       python3-git \
@@ -43,6 +45,7 @@ RUN apt-get clean && \
       python3-pexpect \
       python3-distutils \
       python3-subunit \
+      python3-yaml \
       screen \
       socat \
       sudo \
@@ -65,6 +68,11 @@ RUN groupadd -g $GROUPID -o user
 RUN useradd -u $USERID -m -g user -G plugdev user \
 	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
 	&& chmod 0440 /etc/sudoers.d/user
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
+ENV LANG en_US.utf8
+RUN git config --global user.email "build@example.com" && \
+    git config --global user.name "Build"
 
 USER user
 
