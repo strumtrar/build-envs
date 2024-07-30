@@ -37,6 +37,7 @@ RUN apt-get clean && \
 	python3-dev \
 	python3-mako \
 	python3-jinja2 \
+	python3-mako \
 	python3-setuptools \
 	python3.11-venv \
 	flex \
