@@ -3,11 +3,11 @@
 #
 
 ARG DISTRO=debian
-ARG BASEIMAGE=12.1-slim
+ARG BASEIMAGE=12.5-slim
 FROM $DISTRO:$BASEIMAGE
 
-ARG TOOLCHAIN=oselas.toolchain-2023.07.1-arm-v7a-linux-gnueabihf \
-	      oselas.toolchain-2023.07.1-aarch64-v8a-linux-gnu
+ARG TOOLCHAIN=oselas.toolchain-2024.11.0-arm-v7a-linux-gnueabihf \
+	      oselas.toolchain-2024.11.0-aarch64-v8a-linux-gnu
 
 RUN echo 'deb http://debian.pengutronix.de/debian/ bullseye main contrib non-free' >> /etc/apt/sources.list
 RUN echo 'deb [signed-by=/usr/share/keyrings/pengutronix-archive-keyring.gpg] https://debian.pengutronix.de/debian bullseye main contrib non-free' >> /etc/apt/sources.list

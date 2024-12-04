@@ -30,7 +30,7 @@ jobs:
        fail-fast: false
        matrix:
          distro: [ debian ]
-         baseimage: [ 12.1-slim, 12.2-slim ] 
+         baseimage: [ 12.4-slim, 12.5-slim ] 
     permissions:
       contents: read
       packages: write
