@@ -27,15 +27,18 @@ RUN apt-get clean && \
         bc \
         bison \
         build-essential \
-        chrpath \
 	ccls \
-	chrpath \
+        chrpath \
         cpio \
+	clang \
 	clangd \
         flex \
+	git-core \
         libelf-dev \
         libncurses5-dev \
 	libssl-dev \
+	lld \
+	llvm \
         locales \
 	lz4 \
 	lzop \
@@ -44,6 +47,7 @@ RUN apt-get clean && \
         sudo \
         unzip \
         xz-utils \
+	yamllint \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
