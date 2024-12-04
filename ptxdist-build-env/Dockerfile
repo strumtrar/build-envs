@@ -80,6 +80,8 @@ RUN useradd -u $USERID -m -g user -G plugdev user \
 RUN git config --global user.email "build@example.com" && \
     git config --global user.name "Build"
 
+RUN chown user:user /root
+
 USER user
 
 CMD /bin/bash
