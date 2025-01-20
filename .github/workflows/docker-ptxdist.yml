@@ -31,6 +31,7 @@ jobs:
        matrix:
          ptxdist: [ 2025.01.0, 2024.02.0, 2024.03.0, 2024.04.0, 2024.05.0, 2024.06.0, 2024.07.0, 2024.08.0, 2024.09.0, 2024.10.0, 2024.11.0, 2024.12.0 ]
          toolchain: [ oselas.toolchain-2022.10, oselas.toolchain-2023.07, oselas.toolchain-2024.11 ]
+         baseimage: [ 12.4-slim, 12.5-slim ] 
     permissions:
       contents: read
       packages: write
@@ -85,6 +86,7 @@ jobs:
           build-args: |
             PTXDIST_VERSION=${{ matrix.ptxdist }}
             TOOLCHAIN_VERSION=${{ matrix.toolchain }}
+            BASEIMAGE=${{ matrix.baseimage }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
