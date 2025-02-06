@@ -4,6 +4,8 @@
 
 ARG DISTRO=debian
 ARG BASEIMAGE=12.5-slim
+ARG USERID=1000
+ARG GROUPID=100
 FROM $DISTRO:$BASEIMAGE
 
 ARG TOOLCHAIN=oselas.toolchain-2024.11.0-arm-v7a-linux-gnueabihf \
@@ -47,6 +49,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	lzop \
 	libusb-1.0.0-dev \
 	pkg-config \
+	pipx \
 	python-is-python3 \
         python3-full \
         python3-dev \
@@ -60,10 +63,17 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
-RUN python3 -m venv venv 
-RUN venv/bin/pip install wheel
-RUN venv/bin/pip install dtschema
-
-ENV PATH="${PATH}:${PWD}/venv/bin"
-
 RUN apt-get clean
+
+RUN groupadd -g 100 -o user
+
+RUN useradd -u 1000 -m -g user -G plugdev user \
+	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
+	&& chmod 0440 /etc/sudoers.d/user
+
+USER user
+
+RUN pipx ensurepath
+RUN pipx install dtschema
+
+ENV PATH="/home/user/.local/bin:${PATH}"
