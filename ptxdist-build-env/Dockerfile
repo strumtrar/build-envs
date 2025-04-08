@@ -10,9 +10,9 @@ ARG USERID=1000
 ARG GROUPID=100
 ARG PTXDIST_VERSION=2022.09.0
 
-RUN apt-get clean && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN sudo apt-get clean && \
+    sudo apt-get update && \
+    DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
         build-essential \
 	g++ \
 	autoconf \
@@ -25,6 +25,7 @@ RUN apt-get clean && \
         icecc \
 	icecream-sundae \
         libc6-dev \
+        libcrypt-dev \
         libdbus-1-dev \
         libffi-dev \
         libglib2.0-dev \
@@ -54,34 +55,26 @@ RUN apt-get clean && \
 	ncurses-dev \
 	tclsh
 
-RUN  apt-get clean
-RUN  wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION.tar.bz2 && \
-     tar -xjvf ptxdist-$PTXDIST_VERSION.tar.bz2 && \
+RUN  sudo apt-get clean
+RUN  sudo wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION.tar.bz2 && \
+     sudo tar -xjvf ptxdist-$PTXDIST_VERSION.tar.bz2 && \
      cd ptxdist-$PTXDIST_VERSION && \
-     ./configure --prefix=/opt/ptxdist && \
-     make && \
-     make install && \
+     sudo ./configure --prefix=/opt/ptxdist && \
+     sudo make && \
+     sudo make install && \
      cd .. && \
-     rm -rf ptxdist-$PTXDIST_VERSION && \
-     if [ ! -d /.ptxdist ]; then mkdir /.ptxdist; fi && \
-     chmod 777 /.ptxdist && \
+     sudo rm -rf ptxdist-$PTXDIST_VERSION && \
+     if [ ! -d /.ptxdist ]; then sudo mkdir /.ptxdist; fi && \
+     sudo chmod 777 /.ptxdist && \
      git config --global user.email "you@example.com" && \
      git config --global user.name "Your name"
 
 ENV PATH="${PATH}:/opt/ptxdist/bin"
 
-RUN apt-get clean
-
-RUN groupadd -g $GROUPID -o user
-
-RUN useradd -u $USERID -m -g user -G plugdev user \
-	&& echo 'user ALL = NOPASSWD: ALL' > /etc/sudoers.d/user \
-	&& chmod 0440 /etc/sudoers.d/user
-
 RUN git config --global user.email "build@example.com" && \
     git config --global user.name "Build"
 
-RUN chown user:user /root
+RUN sudo chown user:user /root
 
 USER user
 
