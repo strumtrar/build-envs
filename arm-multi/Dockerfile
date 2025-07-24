@@ -40,7 +40,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         git-core \
 	icecc \
 	icecream-sundae \
-        libncurses5-dev \
+	libfakeroot \
         libssl-dev \
 	lld \
 	llvm \
@@ -53,12 +53,15 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	python-is-python3 \
         python3-full \
         python3-dev \
+	ncurses-dev \
+	rsync \
         screen \
         swig \
         sudo \
         unzip \
         wget \
         xz-utils \
+        xxd \
         yamllint \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
