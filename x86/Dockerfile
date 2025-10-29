@@ -1,4 +1,4 @@
-# debian-12-base
+# debian-11-base
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
@@ -20,14 +20,12 @@ RUN apt-get clean && \
     apt-get update && \
     apt-get install -y apt-utils
 
+ENV TZ="Europe/Berlin"
+
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         $TOOLCHAIN
 
-ENV TZ="Europe/Berlin"
-
-RUN apt-get clean && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         bc \
         bison \
         build-essential \
@@ -35,13 +33,13 @@ RUN apt-get clean && \
         ccls \
         chrpath \
         cpio \
-        clang-19 \
+        clang \
         clangd \
         flex \
         git-core \
 	icecc \
 	icecream-sundae \
-        libncurses5-dev \
+	libfakeroot \
         libssl-dev \
 	lld \
 	llvm \
@@ -54,17 +52,20 @@ RUN apt-get clean && \
 	python-is-python3 \
         python3-full \
         python3-dev \
+	ncurses-dev \
+	rsync \
         screen \
         swig \
         sudo \
         unzip \
         wget \
         xz-utils \
+        xxd \
         yamllint \
 	zstd && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
-RUN  apt-get clean
+RUN apt-get clean
 
 RUN groupadd -g 100 -o user
 

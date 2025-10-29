@@ -8,25 +8,25 @@ ARG USERID=1000
 ARG GROUPID=100
 FROM $DISTRO:$BASEIMAGE
 
-ARG TOOLCHAIN=oselas.toolchain-2024.11.0-arm-v7a-linux-gnueabihf \
-	      oselas.toolchain-2024.11.0-aarch64-v8a-linux-gnu
+ARG TOOLCHAIN=oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf \
+	      oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu
 
-RUN echo 'deb http://debian.pengutronix.de/debian/ bullseye main contrib non-free' >> /etc/apt/sources.list
-RUN echo 'deb [signed-by=/usr/share/keyrings/pengutronix-archive-keyring.gpg] https://debian.pengutronix.de/debian bullseye main contrib non-free' >> /etc/apt/sources.list
-RUN echo 'deb http://debian.pengutronix.de/debian/ bookworm main contrib non-free' >> /etc/apt/sources.list
-RUN echo 'deb [signed-by=/usr/share/keyrings/pengutronix-archive-keyring.gpg] https://debian.pengutronix.de/debian bookworm main contrib non-free' >> /etc/apt/sources.list
-RUN DEBIAN_FRONTEND=noninteractive apt -o="Acquire::AllowInsecureRepositories=true" update
-RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengutronix-archive-keyring
+COPY ptx.sources /etc/apt/sources.list.d/ptx.sources
+COPY pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
+RUN sed -i 's;http://deb.debian.org/debian;http://mirror.stw.pengutronix.de/debian;' /etc/apt/sources.list.d/debian.sources || sed -i 's;http://deb.debian.org/debian;http://mirror.stw.pengutronix.de/debian;' /etc/apt/sources.list
+
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get clean && \
-    apt-get update && \
-    apt-get install -y apt-utils
+    apt-get -y update && \
+    apt-get upgrade -y --with-new-pkgs && \
+    apt-get install -y apt-utils locales sudo
 
 ENV TZ="Europe/Berlin"
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        $TOOLCHAIN
+RUN apt-get install -y $TOOLCHAIN
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN apt-get install -y \
         bc \
         bison \
         build-essential \
@@ -35,16 +35,14 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         chrpath \
         cpio \
         clang \
+        clang-19 \
         clangd \
         flex \
         git-core \
-	icecc \
-	icecream-sundae \
 	libfakeroot \
         libssl-dev \
 	lld \
 	llvm \
-        locales \
 	lz4 \
 	lzop \
 	libusb-1.0.0-dev \
@@ -57,7 +55,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	rsync \
         screen \
         swig \
-        sudo \
         unzip \
         wget \
         xz-utils \
@@ -67,6 +64,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 
 RUN apt-get clean
+
+RUN locale-gen
 
 RUN groupadd -g 100 -o user
 
