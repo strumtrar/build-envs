@@ -1,0 +1,5 @@
+Types: deb
+URIs: http://debian.pengutronix.de/debian/
+Suites: stretch trixie
+Components: main contrib non-free
+Signed-By: /usr/share/keyrings/pengutronix-archive-keyring.gpg
