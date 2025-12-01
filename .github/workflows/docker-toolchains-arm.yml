@@ -32,7 +32,7 @@ jobs:
          distro: [ debian ]
          dockerfile: [ "./arm-multi/Dockerfile" ]
          toolchain_version: [ 2022.10, 2023.07, 2024.11 ] 
-         baseimage: [ 13.1-slim, 12.7-slim, 11.8-slim ]
+         baseimage: [ trixie, 12.7-slim, 11.8-slim ]
          exclude:
            - toolchain_version: "2022.10"
              baseimage: 11.8-slim
