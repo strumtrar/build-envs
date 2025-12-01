@@ -33,7 +33,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ccls \
         chrpath \
         cpio \
-        clang \
+        clang-19 \
         clangd \
         flex \
         git-core \
