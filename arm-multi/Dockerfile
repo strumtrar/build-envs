@@ -3,17 +3,20 @@
 #
 
 ARG DISTRO=debian
-ARG BASEIMAGE=12.5-slim
+ARG BASEIMAGE=trixie
 ARG USERID=1000
 ARG GROUPID=100
-FROM $DISTRO:$BASEIMAGE
+FROM $DISTRO:$BASEIMAGE-slim
 
 ARG TOOLCHAIN=oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf \
 	      oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu
+ENV TOOLCHAIN=${TOOLCHAIN}
 
-COPY ptx.sources /etc/apt/sources.list.d/ptx.sources
+# ARG needs to be re-defined after a FROM
+ARG BASEIMAGE
+ENV BASEIMAGE=${BASEIMAGE}
 COPY pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
-RUN sed -i 's;http://deb.debian.org/debian;http://mirror.stw.pengutronix.de/debian;' /etc/apt/sources.list.d/debian.sources || sed -i 's;http://deb.debian.org/debian;http://mirror.stw.pengutronix.de/debian;' /etc/apt/sources.list
+COPY ptx.sources /etc/apt/sources.list.d/ptx.sources
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -24,7 +27,7 @@ RUN apt-get clean && \
 
 ENV TZ="Europe/Berlin"
 
-RUN apt-get install -y $TOOLCHAIN
+RUN apt-get install -y oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu
 
 RUN apt-get install -y \
         bc \
