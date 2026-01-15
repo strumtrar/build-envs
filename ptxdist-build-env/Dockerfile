@@ -42,7 +42,8 @@ RUN sudo apt-get clean && \
 	python3-mako \
 	python3-pip \
 	python3-setuptools \
-	python3.11-venv \
+	python3-venv \
+	python3-virtualenv \
 	flex \
 	bison \
 	gawk \
