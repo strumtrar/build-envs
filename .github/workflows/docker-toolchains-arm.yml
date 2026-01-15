@@ -31,31 +31,18 @@ jobs:
        matrix:
          distro: [ debian ]
          dockerfile: [ "./arm-multi/Dockerfile" ]
-         toolchain_version: [ 2022.10, 2023.07, 2024.11 ] 
-         baseimage: [ trixie, 12.7-slim, 11.8-slim ]
-         exclude:
-           - toolchain_version: "2022.10"
-             baseimage: 11.8-slim
-           - toolchain_version: "2022.10"
-             baseimage: 11.7-slim
-           - toolchain_version: "2023.07"
-             baseimage: 11.8-slim
-           - toolchain_version: "2023.07"
-             baseimage: 11.7-slim
-           - toolchain_version: "2024.11"
-             baseimage: 11.8-slim
-           - toolchain_version: "2024.11"
-             baseimage: 11.7-slim
+         toolchain_version: [ 2023.07, 2024.11, 2025.11 ] 
+         baseimage: [ trixie, 12.7-slim ]
          include:
-           - toolchain_version: "2022.10"
-             image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2022.10
-             toolchain: "oselas.toolchain-2022.10-arm-v7a-linux-gnueabihf oselas.toolchain-2022.10-aarch64-v8a-linux-gnu"
            - toolchain_version: "2023.07"
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2023.07
              toolchain: "oselas.toolchain-2023.07.1-arm-v7a-linux-gnueabihf oselas.toolchain-2023.07.1-aarch64-v8a-linux-gnu"
            - toolchain_version: "2024.11"
              image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2024.11
              toolchain: "oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu"
+           - toolchain_version: "2025.11"
+             image: ghcr.io/strumtrar/build-env-arm-multi.oselas.toolchain-2025.11
+             toolchain: "oselas.toolchain-2025.11.0-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11.0-aarch64-v8a-linux-gnu"
     permissions:
       contents: read
       packages: write
