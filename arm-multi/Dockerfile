@@ -27,7 +27,7 @@ RUN apt-get clean && \
 
 ENV TZ="Europe/Berlin"
 
-RUN apt-get install -y oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu
+RUN apt install -y oselas.toolchain-2025.11.0-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11.0-aarch64-v8a-linux-gnu
 
 RUN apt-get install -y \
         bc \
@@ -44,6 +44,8 @@ RUN apt-get install -y \
         git-core \
 	libfakeroot \
         libssl-dev \
+	libmpc-dev \
+	libmpfr-dev \
 	lld \
 	llvm \
 	lz4 \
