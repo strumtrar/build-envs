@@ -1,14 +1,24 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-ARG TOOLCHAIN_VERSION=2021.07
 ARG BASEIMAGE=debian.12.2-slim
+ARG TOOLCHAIN_VERSION=2021.07
 
-FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE
+FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE:nightly
 
 ARG USERID=1000
 ARG GROUPID=100
 ARG PTXDIST_VERSION=2022.09.0
+ARG TOOLCHAIN_VERSION
+ARG GNU_TARGET
+
+ENV TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION}
+ENV GNU_TARGET=${GNU_TARGET}
+
+RUN echo $TOOLCHAIN_VERSION
+RUN echo $GNU_TARGET
+
+RUN sudo apt install -y $TOOLCHAIN_VERSION-$GNU_TARGET
 
 RUN sudo apt-get clean && \
     sudo apt-get update && \
@@ -29,6 +39,7 @@ RUN sudo apt-get clean && \
         libdbus-1-dev \
         libffi-dev \
         libglib2.0-dev \
+	libjson-perl \
         libpcap-dev \
         libusb-dev \
 	make \
