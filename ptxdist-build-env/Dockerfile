@@ -61,6 +61,7 @@ RUN sudo apt-get clean && \
 	gettext \
 	texinfo \
 	rsync \
+	ruby \
 	git \
 	wget \
 	pkg-config \
