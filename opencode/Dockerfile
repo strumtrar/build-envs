@@ -31,14 +31,10 @@ USER str
 
 COPY opencode.json /home/str/.config/opencode/opencode.json
 
-#COPY --from=woodpeckerci/woodpecker-cli:latest /bin/woodpecker-cli /usr/local/bin/woodpecker-cli
-
 RUN sudo npm install -g opencode-ai
 
-#RUN git clone https://github.com/strumtrar/review-prompts /home/str/repos/review-prompts
 RUN git clone https://github.com/masoncl/review-prompts /home/str/repos/review-prompts
 RUN sudo chmod 777 -R /home/str/.config/opencode
-#RUN /home/str/repos/review-prompts/kernel/scripts/opencode-setup.sh
 RUN /home/str/repos/review-prompts/setup.sh opencode kernel
 
 ENTRYPOINT ["/usr/local/bin/opencode"]
