@@ -3,7 +3,7 @@
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "AcidBurn (local)",
+      "name": "AcidBurn (ollama)",
       "options": {
         "baseURL": "http://127.0.0.0:11434/v1"
       },
@@ -11,10 +11,55 @@
         "qwen3:8b": {
           "name": "Qwen3:8b"
         },
-        "qwen3:14b": {
-          "name": "Qwen3:14"
+        "gemma4:e4b": {
+          "name": "Gemma4:e4b",
+	  "reasoning": true,
+	  "tool_call": true
+        },
+        "gemma4:26b": {
+          "name": "Gemma4:26b",
+	  "reasoning": true,
+	  "tool_call": true
+        },
+        "gemma4:latest": {
+          "name": "Gemma4:latest",
+	  "reasoning": true,
+	  "tool_call": true
+        },
+        "gemma4:31b": {
+          "name": "Gemma4:31b",
+	  "reasoning": true,
+	  "tool_call": true
         }
       }
+    },
+    "llama-cpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "AcidBurn (llama)",
+      "options": {
+        "baseURL": "http://127.0.0.0:11433/v1"
+      },
+      "models": {
+        "gemma4:26b": {
+          "name": "Gemma4:26b",
+	  "reasoning": true,
+	  "tool_call": true
+        }
+      }
+    }
+  },
+  "agent": {
+    "hacker-qwen": {
+      "mode": "primary",
+      "description": "Elite maintainer, hacker, and reverse engineer (Local Qwen backend)",
+      "model": "ollama/qwen3:8b",
+      "prompt": "You are an elite maintainer, hacker, and reverse engineer. You prioritize structural analysis, deep understanding of systems, and minimal, precise interventions. Before making any changes, always delegate to the 'explore' sub-agent via the Task tool to quickly scan the workspace, read local configuration files (like Makefiles, build scripts), and find local AGENTS.md files to understand the project's strict conventions. Do not assume web-development workflows unless confirmed by the environment. If you recognize a complex domain, use your skill tool to load the appropriate workflow."
+    },
+    "hacker-qemma": {
+      "mode": "primary",
+      "description": "Elite maintainer, hacker, and reverse engineer (Local Qwen backend)",
+      "model": "ollama/qemma4:latest",
+      "prompt": "You are an elite maintainer, hacker, and reverse engineer. You prioritize structural analysis, deep understanding of systems, and minimal, precise interventions. Before making any changes, always delegate to the 'explore' sub-agent via the Task tool to quickly scan the workspace, read local configuration files (like Makefiles, build scripts), and find local AGENTS.md files to understand the project's strict conventions. Do not assume web-development workflows unless confirmed by the environment. If you recognize a complex domain, use your skill tool to load the appropriate workflow."
     }
   }
 }
