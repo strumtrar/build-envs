@@ -3,7 +3,7 @@
 
 ARG BASEIMAGE
 ARG TOOLCHAIN_VERSION
-FROM build-env-arm-multi.$TOOLCHAIN_VERSION.debian.$BASEIMAGE
+FROM build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE
 
 ARG USERID=1000
 ARG GROUPID=100
@@ -50,6 +50,7 @@ RUN sudo apt-get clean && \
 	texinfo \
 	rsync \
 	git \
+	ruby \
 	wget \
 	pkg-config \
 	ncurses-dev \
