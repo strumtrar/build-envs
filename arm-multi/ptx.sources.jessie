@@ -1,0 +1,4 @@
+Types: deb
+URIs: http://archive.debian.org/debian/
+Suites: jessie
+Components: main contrib non-free
