@@ -12,61 +12,30 @@ ARG PTXDIST_VERSION=2022.09.0
 ARG TOOLCHAIN_VERSION
 ARG GNU_TARGET
 
-ENV TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION}
-ENV GNU_TARGET=${GNU_TARGET}
-
-RUN echo $TOOLCHAIN_VERSION
-RUN echo $GNU_TARGET
-
-RUN sudo apt install -y $TOOLCHAIN_VERSION-$GNU_TARGET
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN sudo apt-get clean && \
     sudo apt-get update && \
-    DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
-        build-essential \
-	g++ \
-	autoconf \
-	automake \
-        cpio \
+    sudo apt-get install -y --fix-missing --no-install-recommends \
+	build-essential \
+	bzip2 \
         cmake \
         dialog \
 	dos2unix \
+	gettext \
+	git \
         groff-base \
-        icecc \
-	icecream-sundae \
-        libc6-dev \
-        libcrypt-dev \
         libdbus-1-dev \
         libffi-dev \
-        libglib2.0-dev \
-	libjson-perl \
         libpcap-dev \
         libusb-dev \
+	python-dev \
 	make \
 	man \
         net-tools \
-	python3 \
-	python3-cryptography \
-	python3-dev \
-	python3-mako \
-	python3-jinja2 \
-	python3-mako \
-	python3-pip \
-	python3-setuptools \
-	python3-venv \
-	python3-virtualenv \
-	flex \
-	bison \
 	gawk \
-	gettext \
 	texinfo \
-	rsync \
-	ruby \
-	git \
-	wget \
-	pkg-config \
-	ncurses-dev \
-	tclsh
+	pkg-config
 
 RUN  sudo apt-get clean
 RUN  sudo wget http://public.pengutronix.de/software/ptxdist/ptxdist-$PTXDIST_VERSION.tar.bz2 && \
