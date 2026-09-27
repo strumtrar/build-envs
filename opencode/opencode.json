@@ -1,5 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+   //"oh-my-opencode"
+  ],
+  "permission": {
+    "*": "allow"
+  },
+  "instructions": ["~/.config/opencode/AGENTS.md"],
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
