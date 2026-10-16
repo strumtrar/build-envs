@@ -3,8 +3,9 @@
 
 ARG BASEIMAGE=debian.12.2-slim
 ARG TOOLCHAIN_VERSION=2021.07
+ARG BUILD_ENV_TAG=latest
 
-FROM ghcr.io/strumtrar/build-env-arm-multi.$TOOLCHAIN_VERSION.$BASEIMAGE:nightly
+FROM registry.pengutronix.de/containers/build-env/build-env-arm-multi.$TOOLCHAIN_VERSION.debian.$BASEIMAGE:$BUILD_ENV_TAG
 
 ARG USERID=1000
 ARG GROUPID=100
@@ -22,14 +23,19 @@ RUN sudo apt-get clean && \
         cmake \
         dialog \
 	dos2unix \
+	file \
 	gettext \
 	git \
         groff-base \
+	icecc \
         libdbus-1-dev \
         libffi-dev \
+	libjson-perl \
         libpcap-dev \
         libusb-dev \
-	python-dev \
+	libxml-parser-perl \
+	python-dev-is-python3 \
+	python3-cryptography \
 	make \
 	man \
         net-tools \

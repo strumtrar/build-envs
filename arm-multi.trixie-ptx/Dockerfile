@@ -6,7 +6,7 @@ ARG DISTRO=debian
 ARG BASEIMAGE=trixie-ptx
 ARG USERID=1000
 ARG GROUPID=100
-FROM $DISTRO:$BASEIMAGE
+FROM $BASEIMAGE
 
 ARG TOOLCHAIN=oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf \
 	      oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu
@@ -15,8 +15,8 @@ ENV TOOLCHAIN=${TOOLCHAIN}
 # ARG needs to be re-defined after a FROM
 ARG BASEIMAGE
 ENV BASEIMAGE=${BASEIMAGE}
-COPY arm-multi/pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
-COPY arm-multi/ptx.sources /etc/apt/sources.list.d/ptx.sources
+COPY pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
+COPY ptx.sources /etc/apt/sources.list.d/ptx.sources
 
 ENV DEBIAN_FRONTEND=noninteractive
 

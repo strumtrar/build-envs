@@ -13,7 +13,6 @@ ARG BASEIMAGE
 ENV BASEIMAGE=${BASEIMAGE}
 #COPY pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
 #COPY ptx.sources /etc/apt/sources.list.d/ptx.sources
-#COPY ptx.sources.jessie /etc/apt/sources.list.d/ptx.sources
 
 ENV DEBIAN_FRONTEND=noninteractive
 

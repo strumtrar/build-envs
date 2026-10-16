@@ -7,16 +7,16 @@ ARG USERID=1000
 ARG GROUPID=100
 FROM $BASEIMAGE
 
-ARG TOOLCHAIN=oselas.toolchain-2025.11.0-arm-v7a-linux-gnueabihf \
-	      oselas.toolchain-2025.11.0-aarch64-v8a-linux-gnu
+ARG TOOLCHAIN=oselas.toolchain-2025.11.1-arm-v7a-linux-gnueabihf \
+	      oselas.toolchain-2025.11.1-aarch64-v8a-linux-gnu
 ENV TOOLCHAIN=${TOOLCHAIN}
 
 ENV TZ="Europe/Berlin"
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
-RUN apt-get install -y oselas.toolchain-2025.11.0-arm-v7a-linux-gnueabihf \
-                       oselas.toolchain-2025.11.0-aarch64-v8a-linux-gnu
+RUN apt-get install -y oselas.toolchain-2025.11.1-arm-v7a-linux-gnueabihf \
+                       oselas.toolchain-2025.11.1-aarch64-v8a-linux-gnu
 RUN apt-get install -y --fix-missing \
         bc \
         bison \
