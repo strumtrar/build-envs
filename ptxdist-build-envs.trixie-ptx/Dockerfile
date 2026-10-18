@@ -4,8 +4,10 @@
 ARG BASEIMAGE=debian.12.2-slim
 ARG TOOLCHAIN_VERSION=2021.07
 ARG BUILD_ENV_TAG=latest
+ARG REGISTRY=registry.pengutronix.de/containers/build-env
+ARG BUILD_ENV=build-env-arm-multi.$TOOLCHAIN_VERSION.debian.$BASEIMAGE:$BUILD_ENV_TAG
 
-FROM registry.pengutronix.de/containers/build-env/build-env-arm-multi.$TOOLCHAIN_VERSION.debian.$BASEIMAGE:$BUILD_ENV_TAG
+FROM ${BUILD_ENV}
 
 ARG USERID=1000
 ARG GROUPID=100
