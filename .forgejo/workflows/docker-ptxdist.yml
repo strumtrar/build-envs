@@ -2,7 +2,8 @@ name: PTXDist Build Environment
 
 on:
   schedule:
-    - cron: '15 22 * * *'
+    # Late, so the toolchain images from 22:00 are pushed already
+    - cron: '00 03 * * *'
   push:
     branches: [ "master" ]
     tags: [ 'v*.*.*' ]
@@ -54,6 +55,10 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |
+          if [ -z "${REGISTRY_TOKEN}" ]; then
+            echo "::error::secret REGISTRY_TOKEN is empty or not set"
+            exit 1
+          fi
           mkdir -p ~/.docker
           auth=$(printf '%s:%s' "${OWNER}" "${REGISTRY_TOKEN}" | base64 -w0)
           printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${REGISTRY}" "${auth}" > ~/.docker/config.json

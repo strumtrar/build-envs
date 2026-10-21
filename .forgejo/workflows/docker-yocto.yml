@@ -52,6 +52,10 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |
+          if [ -z "${REGISTRY_TOKEN}" ]; then
+            echo "::error::secret REGISTRY_TOKEN is empty or not set"
+            exit 1
+          fi
           mkdir -p ~/.docker
           auth=$(printf '%s:%s' "${OWNER}" "${REGISTRY_TOKEN}" | base64 -w0)
           printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${REGISTRY}" "${auth}" > ~/.docker/config.json

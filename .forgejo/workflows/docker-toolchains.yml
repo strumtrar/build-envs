@@ -39,7 +39,7 @@ jobs:
            - dockerfile: ./x86.trixie-ptx/Dockerfile
              baseimage: git.leviathan.lan/str/trixie-ptx:latest
              image: build-env-x86.oselas.toolchain-2024.11.debian.trixie
-             toolchain: "oselas.toolchain-2024.11.0-x86_64-unknown-linux-gnu"
+             toolchain: "oselas.toolchain-2025.11.1-x86_64-unknown-linux-gnu"
            # jessie: archive.debian.org, toolchain 2018.02.0 is installed by the Dockerfile
            - dockerfile: ./arm-multi.jessie/Dockerfile
              baseimage: jessie
@@ -70,6 +70,10 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |
+          if [ -z "${REGISTRY_TOKEN}" ]; then
+            echo "::error::secret REGISTRY_TOKEN is empty or not set"
+            exit 1
+          fi
           mkdir -p ~/.docker
           auth=$(printf '%s:%s' "${OWNER}" "${REGISTRY_TOKEN}" | base64 -w0)
           printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${REGISTRY}" "${auth}" > ~/.docker/config.json
