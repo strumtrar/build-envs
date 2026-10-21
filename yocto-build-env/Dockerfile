@@ -27,10 +27,10 @@ RUN apt-get clean && \
       iputils-ping \
       kmod \
       locales \
-      libtinfo5 \
-      libegl1-mesa \
+      libtinfo6 \
+      libegl1 \
       libsdl1.2-dev \
-      libncursesw5 \
+      libncursesw6 \
       lz4 \
       lzop \
       mesa-common-dev \
@@ -43,7 +43,7 @@ RUN apt-get clean && \
       python3-git \
       python3-pip \
       python3-pexpect \
-      python3-distutils \
+      python3-setuptools \
       python3-subunit \
       python3-yaml \
       screen \
