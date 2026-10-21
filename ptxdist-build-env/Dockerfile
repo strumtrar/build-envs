@@ -19,7 +19,12 @@ ENV GNU_TARGET=${GNU_TARGET}
 RUN echo $TOOLCHAIN_VERSION
 RUN echo $GNU_TARGET
 
-RUN sudo apt install -y $TOOLCHAIN_VERSION-$GNU_TARGET
+# The base image already ships the arm/aarch64 toolchains, only install an
+# additional one when a GNU_TARGET is given
+RUN if [ -n "$GNU_TARGET" ]; then \
+        sudo apt-get update && \
+        sudo apt-get install -y $TOOLCHAIN_VERSION-$GNU_TARGET; \
+    fi
 
 RUN sudo apt-get clean && \
     sudo apt-get update && \

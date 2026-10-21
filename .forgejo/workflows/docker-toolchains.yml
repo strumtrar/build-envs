@@ -38,8 +38,8 @@ jobs:
              toolchain: "oselas.toolchain-2025.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11.1-aarch64-v8a-linux-gnu"
            - dockerfile: ./x86.trixie-ptx/Dockerfile
              baseimage: git.leviathan.lan/str/trixie-ptx:latest
-             image: build-env-x86.oselas.toolchain-2024.11.debian.trixie
-             toolchain: "oselas.toolchain-2025.11.1-x86_64-unknown-linux-gnu"
+             image: build-env-x86.oselas.toolchain-2025.11.debian.trixie
+             toolchain: "oselas.toolchain-2025.11.1-x86-64-unknown-linux-gnu"
            # jessie: archive.debian.org, toolchain 2018.02.0 is installed by the Dockerfile
            - dockerfile: ./arm-multi.jessie/Dockerfile
              baseimage: jessie

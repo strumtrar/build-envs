@@ -8,7 +8,7 @@ ARG USERID=1000
 ARG GROUPID=100
 FROM $BASEIMAGE
 
-ARG TOOLCHAIN=oselas.toolchain-2024.11.0-x86_64-unknown-linux-gnu
+ARG TOOLCHAIN=oselas.toolchain-2024.11.0-x86-64-unknown-linux-gnu
 
 # trixie-ptx points apt at the internal mirror.stw.pengutronix.de. Default to
 # the public mirror, so the build does not depend on the company network.
