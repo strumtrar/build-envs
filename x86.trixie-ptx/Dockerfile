@@ -6,14 +6,20 @@ ARG DISTRO=debian
 ARG BASEIMAGE=12.5-slim
 ARG USERID=1000
 ARG GROUPID=100
-FROM $DISTRO:$BASEIMAGE
+FROM trixie-ptx
 
 ARG TOOLCHAIN=oselas.toolchain-2024.11.0-x86_64-unknown-linux-gnu
 
-RUN echo 'deb http://debian.pengutronix.de/debian/ bullseye main contrib non-free' >> /etc/apt/sources.list
-RUN echo 'deb [signed-by=/usr/share/keyrings/pengutronix-archive-keyring.gpg] https://debian.pengutronix.de/debian bullseye main contrib non-free' >> /etc/apt/sources.list
-RUN echo 'deb http://debian.pengutronix.de/debian/ bookworm main contrib non-free' >> /etc/apt/sources.list
-RUN echo 'deb [signed-by=/usr/share/keyrings/pengutronix-archive-keyring.gpg] https://debian.pengutronix.de/debian bookworm main contrib non-free' >> /etc/apt/sources.list
+# trixie-ptx points apt at the internal mirror.stw.pengutronix.de. Default to
+# the public mirror, so the build does not depend on the company network.
+# On the build server use:
+#   --build-arg=DEBIAN_MIRROR=http://mirror.stw.pengutronix.de/debian
+# debian.pengutronix.de/debian only carries Pengutronix' own packages
+# (toolchains, ptxdist), the Debian packages come from the Debian mirror.
+ARG DEBIAN_MIRROR=http://deb.debian.org/debian
+RUN sed -i "s|http://mirror.stw.pengutronix.de/debian|${DEBIAN_MIRROR}|" /etc/apt/sources.list.d/debian.sources
+RUN printf 'Types: deb\nURIs: http://debian.pengutronix.de/debian\nSuites: trixie\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/pengutronix-archive-keyring.gpg\n' > /etc/apt/sources.list.d/ptx.sources
+
 RUN DEBIAN_FRONTEND=noninteractive apt -o="Acquire::AllowInsecureRepositories=true" update
 RUN DEBIAN_FRONTEND=noninteractive apt --allow-unauthenticated install -y pengutronix-archive-keyring
 RUN apt-get clean && \
