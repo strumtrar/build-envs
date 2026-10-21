@@ -1,0 +1,97 @@
+name: OSELAS.Toolchain Environment
+
+on:
+  schedule:
+    - cron: '00 22 * * *'
+  push:
+    branches: [ "master" ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  # Forgejo container registry, images end up as ${REGISTRY}/${OWNER}/<name>
+  REGISTRY: git.leviathan.lan
+  OWNER: str
+
+jobs:
+  build:
+    # The job container needs the docker CLI and the host docker socket
+    # (runner config: container.docker_host: automount).
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-24.04
+    strategy:
+       fail-fast: false
+       matrix:
+         distro: [ debian ]
+         baseimage: [ trixie, 12.7 ]
+         include:
+           - dockerfile: ./arm-multi/Dockerfile
+             image: build-env-arm-multi.oselas.toolchain-2023.07
+             toolchain: "oselas.toolchain-2023.07-arm-v7a-linux-gnueabihf oselas.toolchain-2023.07-aarch64-v8a-linux-gnu"
+           - dockerfile: ./arm-multi/Dockerfile
+             image: build-env-arm-multi.oselas.toolchain-2024.11
+             toolchain: "oselas.toolchain-2024.11-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11-aarch64-v8a-linux-gnu"
+           - dockerfile: ./arm-multi/Dockerfile
+             image: build-env-arm-multi.oselas.toolchain-2025.11
+             toolchain: "oselas.toolchain-2025.11-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11-aarch64-v8a-linux-gnu"
+           - dockerfile: ./x86/Dockerfile
+             image: build-env-x86
+             toolchain: ""
+    env:
+      IMAGE: git.leviathan.lan/str/${{ matrix.image }}.${{ matrix.distro }}.${{ matrix.baseimage }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # The registry is plain HTTP, tell buildkit about it
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."${{ env.REGISTRY }}"]
+              http = true
+              insecure = true
+
+      # Write the credentials directly instead of using docker/login-action:
+      # 'docker login' goes through the daemon, which would need the registry
+      # in its insecure-registries list.
+      # REGISTRY_TOKEN: Forgejo access token with package read/write scope.
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        env:
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: |
+          mkdir -p ~/.docker
+          auth=$(printf '%s:%s' "${OWNER}" "${REGISTRY_TOKEN}" | base64 -w0)
+          printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${REGISTRY}" "${auth}" > ~/.docker/config.json
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=schedule
+            type=raw,value=nightly,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          build-args: |
+            TOOLCHAIN=${{ matrix.toolchain }}
+            DISTRO=${{ matrix.distro }}
+            BASEIMAGE=${{ matrix.baseimage }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}:buildcache,mode=max', env.IMAGE) || '' }}
