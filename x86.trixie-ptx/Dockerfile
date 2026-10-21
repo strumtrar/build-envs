@@ -18,6 +18,12 @@ ARG TOOLCHAIN=oselas.toolchain-2024.11.0-x86_64-unknown-linux-gnu
 # (toolchains, ptxdist), the Debian packages come from the Debian mirror.
 ARG DEBIAN_MIRROR=http://deb.debian.org/debian
 RUN sed -i "s|http://mirror.stw.pengutronix.de/debian|${DEBIAN_MIRROR}|" /etc/apt/sources.list.d/debian.sources
+
+# Some networks hand out AAAA records without having an IPv6 route, apt then
+# fails with "Network is unreachable". Use --build-arg=APT_FORCE_IPV4=true there.
+ARG APT_FORCE_IPV4=false
+RUN echo "Acquire::ForceIPv4 \"${APT_FORCE_IPV4}\";" > /etc/apt/apt.conf.d/99force-ipv4
+
 RUN printf 'Types: deb\nURIs: http://debian.pengutronix.de/debian\nSuites: trixie\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/pengutronix-archive-keyring.gpg\n' > /etc/apt/sources.list.d/ptx.sources
 
 RUN DEBIAN_FRONTEND=noninteractive apt -o="Acquire::AllowInsecureRepositories=true" update

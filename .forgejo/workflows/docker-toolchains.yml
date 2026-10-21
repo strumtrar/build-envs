@@ -94,6 +94,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           build-args: |
             BASEIMAGE=${{ matrix.baseimage }}
+            APT_FORCE_IPV4=true
             ${{ matrix.toolchain != '' && format('TOOLCHAIN={0}', matrix.toolchain) || '' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
