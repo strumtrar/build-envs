@@ -25,23 +25,28 @@ jobs:
     strategy:
        fail-fast: false
        matrix:
-         distro: [ debian ]
-         baseimage: [ trixie, 12.7 ]
          include:
-           - dockerfile: ./arm-multi/Dockerfile
-             image: build-env-arm-multi.oselas.toolchain-2023.07
-             toolchain: "oselas.toolchain-2023.07-arm-v7a-linux-gnueabihf oselas.toolchain-2023.07-aarch64-v8a-linux-gnu"
-           - dockerfile: ./arm-multi/Dockerfile
-             image: build-env-arm-multi.oselas.toolchain-2024.11
-             toolchain: "oselas.toolchain-2024.11-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11-aarch64-v8a-linux-gnu"
-           - dockerfile: ./arm-multi/Dockerfile
-             image: build-env-arm-multi.oselas.toolchain-2025.11
-             toolchain: "oselas.toolchain-2025.11-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11-aarch64-v8a-linux-gnu"
-           - dockerfile: ./x86/Dockerfile
-             image: build-env-x86
+           # trixie: trixie-ptx pushed to the Forgejo registry, toolchains from
+           # debian.pengutronix.de, ptxdist builds on top
+           - dockerfile: ./arm-multi.trixie-ptx/Dockerfile
+             baseimage: git.leviathan.lan/str/trixie-ptx:latest
+             image: build-env-arm-multi.oselas.toolchain-2024.11.debian.trixie
+             toolchain: "oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu"
+           - dockerfile: ./arm-multi.trixie-ptx/Dockerfile
+             baseimage: git.leviathan.lan/str/trixie-ptx:latest
+             image: build-env-arm-multi.oselas.toolchain-2025.11.debian.trixie
+             toolchain: "oselas.toolchain-2025.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11.1-aarch64-v8a-linux-gnu"
+           - dockerfile: ./x86.trixie-ptx/Dockerfile
+             baseimage: git.leviathan.lan/str/trixie-ptx:latest
+             image: build-env-x86.oselas.toolchain-2024.11.debian.trixie
+             toolchain: "oselas.toolchain-2024.11.0-x86_64-unknown-linux-gnu"
+           # jessie: archive.debian.org, toolchain 2018.02.0 is installed by the Dockerfile
+           - dockerfile: ./arm-multi.jessie/Dockerfile
+             baseimage: jessie
+             image: build-env-arm-multi.oselas.toolchain-2018.02.debian.jessie
              toolchain: ""
     env:
-      IMAGE: git.leviathan.lan/str/${{ matrix.image }}.${{ matrix.distro }}.${{ matrix.baseimage }}
+      IMAGE: git.leviathan.lan/str/${{ matrix.image }}
 
     steps:
       - name: Checkout repository
@@ -81,15 +86,15 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
 
+      # TOOLCHAIN is only passed when set, so the Dockerfile default applies otherwise
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           build-args: |
-            TOOLCHAIN=${{ matrix.toolchain }}
-            DISTRO=${{ matrix.distro }}
             BASEIMAGE=${{ matrix.baseimage }}
+            ${{ matrix.toolchain != '' && format('TOOLCHAIN={0}', matrix.toolchain) || '' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

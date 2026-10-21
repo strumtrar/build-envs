@@ -8,15 +8,22 @@ ARG USERID=1000
 ARG GROUPID=100
 FROM $BASEIMAGE
 
-ARG TOOLCHAIN=oselas.toolchain-2024.11.1-arm-v7a-linux-gnueabihf \
-	      oselas.toolchain-2024.11.1-aarch64-v8a-linux-gnu
+ARG TOOLCHAIN=oselas.toolchain-2025.11.1-arm-v7a-linux-gnueabihf \
+	      oselas.toolchain-2025.11.1-aarch64-v8a-linux-gnu
 ENV TOOLCHAIN=${TOOLCHAIN}
 
 # ARG needs to be re-defined after a FROM
 ARG BASEIMAGE
 ENV BASEIMAGE=${BASEIMAGE}
-COPY arm-multi/pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
-COPY arm-multi/ptx.sources /etc/apt/sources.list.d/ptx.sources
+COPY arm-multi.trixie-ptx/pengutronix-archive-keyring.gpg /usr/share/keyrings/pengutronix-archive-keyring.gpg
+COPY arm-multi.trixie-ptx/ptx.sources /etc/apt/sources.list.d/ptx.sources
+
+# trixie-ptx points apt at the internal mirror.stw.pengutronix.de. Default to
+# the public mirror, so the build does not depend on the company network.
+# On the build server use:
+#   --build-arg=DEBIAN_MIRROR=http://mirror.stw.pengutronix.de/debian
+ARG DEBIAN_MIRROR=http://deb.debian.org/debian
+RUN sed -i "s|http://mirror.stw.pengutronix.de/debian|${DEBIAN_MIRROR}|" /etc/apt/sources.list.d/debian.sources
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -28,12 +35,13 @@ RUN apt-get clean && \
 ENV TZ="Europe/Berlin"
 
 #RUN apt install -y oselas.toolchain-2024.11-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11-aarch64-v8a-linux-gnu
-RUN apt install -y oselas.toolchain-2025.11.1-arm-v7a-linux-gnueabihf oselas.toolchain-2025.11.1-aarch64-v8a-linux-gnu
+RUN apt-get install -y $TOOLCHAIN
 
 RUN apt-get install -y --no-install-recommends \
         bc \
         bison \
         build-essential \
+        ca-certificates \
         ccache \
         ccls \
         chrpath \

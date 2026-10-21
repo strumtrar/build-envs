@@ -3,10 +3,10 @@
 #
 
 ARG DISTRO=debian
-ARG BASEIMAGE=12.5-slim
+ARG BASEIMAGE=trixie-ptx
 ARG USERID=1000
 ARG GROUPID=100
-FROM trixie-ptx
+FROM $BASEIMAGE
 
 ARG TOOLCHAIN=oselas.toolchain-2024.11.0-x86_64-unknown-linux-gnu
 
