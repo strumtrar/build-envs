@@ -41,18 +41,22 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
         bc \
         bison \
         build-essential \
+        ca-certificates \
         ccache \
         ccls \
         chrpath \
         cpio \
+        curl \
         clang-19 \
         clangd \
         flex \
         git-core \
+        libelf-dev \
 	icecc \
 	icecream-sundae \
 	libfakeroot \
         libssl-dev \
+        libyaml-dev \
 	lld \
 	llvm \
         locales \
