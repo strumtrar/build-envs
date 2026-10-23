@@ -51,13 +51,16 @@ RUN apt-get install -y --no-install-recommends \
         ccls \
         chrpath \
         cpio \
+        curl \
         clang \
         clang-19 \
         clangd \
         flex \
         git-core \
+        libelf-dev \
 	libfakeroot \
         libssl-dev \
+        libyaml-dev \
 	libmpc-dev \
 	libmpfr-dev \
 	lld \
