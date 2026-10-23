@@ -106,3 +106,7 @@ RUN pipx ensurepath
 RUN pipx install dtschema
 
 ENV PATH="/home/user/.local/bin:${PATH}"
+
+# Which build this is; CI pipelines print it, just task-done reads it
+ARG BUILD_ENV_TAG=local
+RUN echo "${BUILD_ENV_TAG}" | sudo tee /etc/build-env-revision >/dev/null

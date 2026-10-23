@@ -78,6 +78,11 @@ jobs:
           auth=$(printf '%s:%s' "${OWNER}" "${REGISTRY_TOKEN}" | base64 -w0)
           printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${REGISTRY}" "${auth}" > ~/.docker/config.json
 
+      # unique per build: the nightly is rebuilt from the same commit
+      - name: Build tag
+        id: rev
+        run: echo "tag=build-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -86,6 +91,7 @@ jobs:
           tags: |
             type=schedule
             type=raw,value=nightly,enable={{is_default_branch}}
+            type=raw,value=${{ steps.rev.outputs.tag }},enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
@@ -97,6 +103,7 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           build-args: |
+            BUILD_ENV_TAG=${{ steps.rev.outputs.tag }}
             BASEIMAGE=${{ matrix.baseimage }}
             APT_FORCE_IPV4=true
             ${{ matrix.toolchain != '' && format('TOOLCHAIN={0}', matrix.toolchain) || '' }}
