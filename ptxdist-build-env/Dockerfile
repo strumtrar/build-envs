@@ -23,7 +23,7 @@ RUN echo $GNU_TARGET
 # additional one when a GNU_TARGET is given
 RUN if [ -n "$GNU_TARGET" ]; then \
         sudo apt-get update && \
-        sudo apt-get install -y $TOOLCHAIN_VERSION-$GNU_TARGET; \
+        sudo apt-get install -y --no-install-recommends "?exact-name($TOOLCHAIN_VERSION-$GNU_TARGET)"; \
     fi
 
 RUN sudo apt-get clean && \

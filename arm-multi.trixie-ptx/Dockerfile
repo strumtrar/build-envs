@@ -40,7 +40,12 @@ RUN apt-get clean && \
 ENV TZ="Europe/Berlin"
 
 #RUN apt install -y oselas.toolchain-2024.11-arm-v7a-linux-gnueabihf oselas.toolchain-2024.11-aarch64-v8a-linux-gnu
-RUN apt-get install -y $TOOLCHAIN
+# apt-get falls back to a regex match for names with ".", so
+# oselas.toolchain-<v>-arm-v7a-linux-gnueabi also matches gnueabihf and all
+# -dbgsym packages (several GB; the dbgsym of related toolchains share
+# .build-id files and collide). ?exact-name() installs exactly what is named.
+RUN set -- ; for p in $TOOLCHAIN; do set -- "$@" "?exact-name($p)"; done; \
+    apt-get install -y --no-install-recommends "$@"
 
 RUN apt-get install -y --no-install-recommends \
         bc \
